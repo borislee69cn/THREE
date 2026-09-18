@@ -471,7 +471,18 @@ body.show-index .tile::after{font-size:17px}
  .dice-widget .dice-count,.dice-widget .dice-count b{font-size:13px}
  .toast{bottom:calc(8px + 60px + 8px + var(--sab));font-size:12px;padding:6px 12px}
  .landmark .boss-plaque{margin-top:22px}
+ .landmark .sprite{filter:drop-shadow(0 3px 2px #293a2a26)}
  .boss-plaque small{font-size:14px}.boss-plaque strong{font-size:24px;letter-spacing:3px;text-indent:3px}.boss-plaque{padding:4px 14px;border-width:2px}
+}
+/* === 手機橫向：武將立繪與主角圖標縮小，避免頂到天 bar === */
+@media (max-height:520px){
+ .landmark,.landmark.final{width:150px;height:200px}
+ .landmark .sprite,.landmark.final .sprite{height:142px}
+ .treasure-landmark{width:150px;height:156px}
+ .treasure-landmark .sprite{height:134px}
+ .landmark.treasure-landmark .boss-plaque{bottom:102px}
+ .hero-token{transform:translate(-50%,-100%) scale(1.05)}
+ .hero-tag{font-size:12px;padding:2px 9px}
 }
 </style>
 </head>
@@ -611,8 +622,8 @@ function cameraFor(p){const w=map.clientWidth/camera.scale,h=map.clientHeight/ca
 function renderCamera(){world.style.transform=`translate(${-camera.x*camera.scale}px,${-camera.y*camera.scale}px) scale(${camera.scale})`;}
 function moveCameraTo(p,smooth=true){const target=cameraFor(p);const from={...camera},id=++lastCameraTime;const start=performance.now();const duration=reduced||!smooth?0:480;return new Promise(resolve=>{const frame=now=>{if(id!==lastCameraTime){resolve();return;}const t=duration?clamp((now-start)/duration,0,1):1;const ease=1-(1-t)**3;camera.x=from.x+(target.x-from.x)*ease;camera.y=from.y+(target.y-from.y)*ease;renderCamera();if(t<1)requestAnimationFrame(frame);else resolve();};requestAnimationFrame(frame);});}
 /* 短螢幕時世界高度大於視窗：鏡頭鎖定在路線帶，仍不可上下拖曳 */
-function cameraY(){const h=map.clientHeight/camera.scale;if(h>=WORLD.height)return 0;return clamp(ROUTE_Y-h*.64,0,WORLD.height-h);}
-function resize(){camera.scale=clamp(map.clientHeight/WORLD.height,.4,1.6);if(map.clientHeight<520){camera.scale=clamp(map.clientHeight/620,.5,1.6);}const p=points[journey.position];if(following){const t=cameraFor(p);camera.x=t.x;camera.y=t.y;}else{camera.x=clamp(camera.x,0,WORLD.width-map.clientWidth/camera.scale);camera.y=cameraY();}renderCamera();}
+function cameraY(){const h=map.clientHeight/camera.scale;if(h>=WORLD.height)return 0;/* 讓路線帶落在天 bar 與地 bar 之間的可視區中央 */const topH=(56+(parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--sat'))||0))/camera.scale,botH=(92+(parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--sab'))||0))/camera.scale;const visMid=topH+(h-topH-botH)*.66;return clamp(ROUTE_Y-visMid,0,WORLD.height-h);}
+function resize(){camera.scale=clamp(map.clientHeight/WORLD.height,.4,1.6);if(map.clientHeight<520){camera.scale=clamp((map.clientHeight-148)/420,.5,1.6);}const p=points[journey.position];if(following){const t=cameraFor(p);camera.x=t.x;camera.y=t.y;}else{camera.x=clamp(camera.x,0,WORLD.width-map.clientWidth/camera.scale);camera.y=cameraY();}renderCamera();}
 function toast(text,timeout=0){clearTimeout(toastTimer);$('toast').textContent=text;$('toast').style.opacity='1';if(timeout)toastTimer=setTimeout(()=>{$('toast').style.opacity='0';},timeout);}
 function announce(text){$('announcer').textContent=text;}
 function updateUI(){
