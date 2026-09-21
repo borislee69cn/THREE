@@ -515,7 +515,7 @@ html.ui-scaled,html.ui-scaled body{overflow:hidden}
 .hs-go:disabled{background:linear-gradient(#cfc7b3,#a89f88);box-shadow:inset 0 4px 0 #e6e0d2,inset 0 -6px 0 #7b7461,0 6px 0 #5f5a4c;color:#5a554a;cursor:not-allowed}
 @media (max-width:760px) and (min-height:600px){.hs-list{grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.hs-head h1{font-size:28px}.hs-card strong{font-size:18px}.hs-card small{font-size:11px}.hs-go{height:62px;padding:0 36px}.hs-go strong{font-size:22px}}
 /* 選角畫面：矮螢幕（手機橫向）壓縮版 */
-@media (max-height:600px){
+@media (max-height:600px) and (min-height:9999px){
  .hero-select{padding:calc(8px + var(--sat)) calc(12px + var(--sar)) calc(8px + var(--sab)) calc(12px + var(--sal))}
  .hs-panel{gap:8px}
  .hs-head small{font-size:11px}.hs-head h1{font-size:22px;margin:0;letter-spacing:5px}.hs-head p{font-size:11px}
@@ -541,12 +541,12 @@ html.ui-scaled,html.ui-scaled body{overflow:hidden}
 .hs-card.selected:nth-child(3)::after{box-shadow:0 0 28px #4cff8a99,0 0 0 4px #ffd45a,inset 0 0 0 2px #7dffa0aa}
 @keyframes hs-sweep{to{--hs-a:360deg}}
 @keyframes hs-glow{50%{opacity:.6}}
-@media (max-height:600px){.hs-head h1{font-size:24px;letter-spacing:5px;margin:0}.hs-head small{font-size:11px}.hs-list{padding:40px 0 12px}.hs-card:nth-child(2),.hs-card:nth-child(4){--ty:-8px}.hs-card:nth-child(3){--ty:-16px}.hs-card:nth-child(3)::before,.hs-card:nth-child(3)::after{inset:-5px;border-radius:20px}}
+@media (max-height:600px) and (min-height:9999px){.hs-head h1{font-size:24px;letter-spacing:5px;margin:0}.hs-head small{font-size:11px}.hs-list{padding:40px 0 12px}.hs-card:nth-child(2),.hs-card:nth-child(4){--ty:-8px}.hs-card:nth-child(3){--ty:-16px}.hs-card:nth-child(3)::before,.hs-card:nth-child(3)::after{inset:-5px;border-radius:20px}}
 @media (max-width:760px) and (min-height:600px){.hs-card,.hs-card:nth-child(2),.hs-card:nth-child(3),.hs-card:nth-child(4){--k:1;--ty:0px}.hs-list{padding:8px 0}}
 /* === 五虎上將卡：底邊對齊同一水平線（保留 1.0 / 1.1 / 1.2 比例） === */
 .hs-list{align-items:center;padding:70px 0 40px}
 .hs-card,.hs-card:nth-child(2),.hs-card:nth-child(3),.hs-card:nth-child(4){--ty:0px;transform-origin:50% 50%}/* 以卡片中心縮放 → 中心線對齊 */
-@media (max-height:600px){.hs-list{padding:34px 0 12px}}
+@media (max-height:600px) and (min-height:9999px){.hs-list{padding:34px 0 12px}}
 /* === 五虎上將卡：左右循環拖曳的輪盤，中心即為選角 === */
 .hs-list{display:block;position:relative;height:var(--hs-h,360px);width:100%;padding:0!important;margin:56px 0 30px;touch-action:pan-y;cursor:grab;user-select:none;-webkit-user-select:none;overflow:visible}
 .hs-list.dragging{cursor:grabbing}
@@ -559,7 +559,7 @@ html.ui-scaled,html.ui-scaled body{overflow:hidden}
 .hs-card.center::after{content:'';position:absolute;inset:-7px;border-radius:30px;box-shadow:0 0 22px #4cff8a55,inset 0 0 0 2px #7dffa066;pointer-events:none;animation:hs-glow 2.6s ease-in-out infinite}
 .hs-card.center{border-color:#d9a23a;background:linear-gradient(#fff8d2,#f6dfa0)}
 .hs-card.selected::after{content:'';top:auto;right:auto;background:none;box-shadow:0 0 22px #4cff8a55,inset 0 0 0 2px #7dffa066;padding:0;font-size:0}
-@media (max-height:600px){.hs-list{margin:22px 0 14px}.hs-card.center::before,.hs-card.center::after{inset:-5px;border-radius:20px}}
+@media (max-height:600px) and (min-height:9999px){.hs-list{margin:22px 0 14px}.hs-card.center::before,.hs-card.center::after{inset:-5px;border-radius:20px}}
 @media (max-width:760px) and (min-height:600px){.hs-card,.hs-card:nth-child(2),.hs-card:nth-child(3),.hs-card:nth-child(4){--k:1}}
 /* 五虎上將卡：稱號移到人物上方 */
 .hs-card small{order:0;margin-bottom:2px}
@@ -574,12 +574,12 @@ html.ui-scaled,html.ui-scaled body{overflow:hidden}
 .hs-list{margin:var(--hs-gap,40px) 0!important}
 .hs-panel{gap:0}
 .hs-head{margin:0}
-@media (max-height:600px){.hs-list{--hs-gap:16px}}
+@media (max-height:600px) and (min-height:9999px){.hs-list{--hs-gap:16px}}
 /* 副標「選擇武將」24px，置於標題與卡牌正中間 */
 .hs-head h1{margin:0}
 .hs-head small{font-size:24px;letter-spacing:6px;text-indent:6px;margin:20px 0 0;line-height:1.1}
 .hs-list{margin:20px 0 var(--hs-gap,40px)!important}
-@media (max-height:600px){.hs-head small{font-size:14px;margin:8px 0 0}.hs-list{margin:8px 0 16px!important}}
+@media (max-height:600px) and (min-height:9999px){.hs-head small{font-size:14px;margin:8px 0 0}.hs-list{margin:8px 0 16px!important}}
 /* 玩家圖標：各武將以臉部為中心裁切 */
 .portrait .hero-sprite.hero-0{left:calc(50% - 54.5% * 1.9);top:calc(50% - 36% * 1.9)}.portrait .hero-sprite.hero-1{left:calc(50% - 66.5% * 1.9);top:calc(50% - 41% * 1.9)}.portrait .hero-sprite.hero-2{left:calc(50% - 54.5% * 1.9);top:calc(50% - 40% * 1.9)}.portrait .hero-sprite.hero-3{left:calc(50% - 40.0% * 1.9);top:calc(50% - 40% * 1.9)}.portrait .hero-sprite.hero-4{left:calc(50% - 51.5% * 1.9);top:calc(50% - 41% * 1.9)}
 /* === 戰鬥視窗：左＝玩家武將、中＝骰子、右＝敵將 === */
@@ -623,7 +623,7 @@ html.ui-scaled,html.ui-scaled body{overflow:hidden}
 .duel-panel .pending-hint{text-align:center}
 @media (max-width:1000px){.duel-art,.duel-mid{width:220px;height:220px}.duel-col strong{font-size:30px}.battle-stage.duel{grid-template-columns:1fr 130px 1fr}.duel-mid .battle-die{width:110px;height:110px}}
 @media (max-width:760px) and (min-height:600px){.duel-panel{padding:12px 12px 16px}.duel-heading{font-size:22px;letter-spacing:6px}.battle-stage.duel{grid-template-columns:1fr 70px 1fr}.duel-art,.duel-mid{width:130px;height:130px}.duel-col small{font-size:11px}.duel-col strong{font-size:20px;letter-spacing:3px}.duel-mid .battle-die{width:64px;height:64px}.duel-mid .roll-number{font-size:40px}}
-@media (max-height:600px){.duel-panel{padding:8px 20px 12px}.duel-heading{font-size:20px;margin:0}.battle-stage.duel{grid-template-columns:1fr 90px 1fr}.duel-art,.duel-mid{width:150px;height:150px}.duel-col small{font-size:11px}.duel-col strong{font-size:22px;letter-spacing:4px}.duel-mid .battle-die{width:70px;height:70px}.duel-mid .roll-number{font-size:40px}.duel-panel .battle-line{margin:2px 0 6px;font-size:13px}.duel-panel .gold-button{margin-top:6px}}
+@media (max-height:600px) and (min-height:9999px){.duel-panel{padding:8px 20px 12px}.duel-heading{font-size:20px;margin:0}.battle-stage.duel{grid-template-columns:1fr 90px 1fr}.duel-art,.duel-mid{width:150px;height:150px}.duel-col small{font-size:11px}.duel-col strong{font-size:22px;letter-spacing:4px}.duel-mid .battle-die{width:70px;height:70px}.duel-mid .roll-number{font-size:40px}.duel-panel .battle-line{margin:2px 0 6px;font-size:13px}.duel-panel .gold-button{margin-top:6px}}
 /* 戰鬥視窗：按鍵與版面高度固定，擲骰時不跳動 */
 .duel-panel .gold-button{min-height:72px;box-sizing:border-box}
 .duel-panel .battle-line{min-height:24px}
@@ -643,15 +643,15 @@ html.ui-scaled,html.ui-scaled body{overflow:hidden}
 .hs-head h1{-webkit-text-stroke:1.2px #1a1208;paint-order:stroke fill;text-shadow:0 3px 0 #4a2a10,0 0 14px #ffd27a66,0 1px 0 #000,0 -1px 0 #000,1px 0 0 #000,-1px 0 0 #000}
 /* 主標放大 20% */
 .hs-head h1{font-size:48px}
-@media (max-height:600px){.hs-head h1{font-size:29px}}
+@media (max-height:600px) and (min-height:9999px){.hs-head h1{font-size:29px}}
 /* 主標改用美術字圖（蜀漢 · 五虎上將） */
 .hs-head h1.hs-title-img{font-size:0;line-height:0;text-shadow:none;-webkit-text-stroke:0;margin:0}
 .hs-head h1.hs-title-img img{display:block;width:min(340px,46vw);height:auto;filter:drop-shadow(0 6px 6px #00000055)}
-@media (max-height:600px){.hs-head h1.hs-title-img img{width:min(160px,22vw)}}
+@media (max-height:600px) and (min-height:9999px){.hs-head h1.hs-title-img img{width:min(160px,22vw)}}
 /* 副標「選擇武將」上移 8px */
 .hs-head small{margin-top:2px;position:relative;top:0}
 .hs-list{margin-top:38px!important}
-@media (max-height:600px){.hs-head small{margin-top:0}.hs-list{margin-top:16px!important}}
+@media (max-height:600px) and (min-height:9999px){.hs-head small{margin-top:0}.hs-list{margin-top:16px!important}}
 /* 敵將立繪：裁掉精靈圖相鄰格滲入的邊緣（底部黑弧） */
 #battle-art,.landmark .sprite{clip-path:inset(0 0 1.5% 0)}
 /* === 戰鬥視窗改為非 modal：天 bar 選單維持可見可點；地圖以遮罩擋住 === */
@@ -681,7 +681,7 @@ html.ui-scaled,html.ui-scaled body{overflow:hidden}
 .duel-panel .pending-hint{font-size:20px}
 .duel-panel .pending-hint b{font-size:22px}
 .duel-panel .battle-result{font-size:27px}
-@media (max-height:600px){.duel-heading{font-size:24px}.duel-col small{font-size:14px}.duel-col strong{font-size:26px}.duel-panel .battle-line{font-size:14px;min-height:20px}.duel-panel .hp-copy{font-size:13px}.duel-panel .gold-button{font-size:17px;min-height:56px}.duel-panel .gold-button span{font-size:12px}.duel-panel .pending-hint{font-size:13px}.duel-panel .pending-hint b{font-size:14px}}
+@media (max-height:600px) and (min-height:9999px){.duel-heading{font-size:24px}.duel-col small{font-size:14px}.duel-col strong{font-size:26px}.duel-panel .battle-line{font-size:14px;min-height:20px}.duel-panel .hp-copy{font-size:13px}.duel-panel .gold-button{font-size:17px;min-height:56px}.duel-panel .gold-button span{font-size:12px}.duel-panel .pending-hint{font-size:13px}.duel-panel .pending-hint b{font-size:14px}}
 /* === 戰鬥視窗：上下間距縮減 50% === */
 .duel-panel{padding:9px 40px 10px}
 .duel-heading{margin:0 0 2px}
@@ -705,6 +705,8 @@ html.ui-scaled,html.ui-scaled body{overflow:hidden}
 .hs-card small{white-space:nowrap}
 .hs-panel{transform-origin:50% 50%;transform:scale(var(--hs-fit,1));max-height:none}
 .hs-list{flex:none}
+/* === 選角畫面：矮螢幕時與遊戲主畫面一樣採 860px 設計高度整體縮放 === */
+html.ui-scaled .hero-select{position:absolute;left:0;top:0;height:860px;transform-origin:0 0;transform:scale(var(--s));width:var(--design-w,100%)}
 </style>
 </head>
 <body class="show-index">
@@ -918,7 +920,7 @@ function applyHero(){const h=HEROES[heroIndex];for(const el of [$('hero-token-sp
 /* 選角輪盤：拖曳左右循環，中心卡即為選角；點卡片可直接轉到中心 */
 const HS_SCALES=[1.44,1.21,1.0];/* 中 1.2×1.2、鄰 1.1×1.1、外 1.0 */let hsPos=4;/* 目前位於中心的索引（可為小數，拖曳中） */
 function cw_extra(){return 0;}
-function hsLayout(){const list=$('hs-list');const W=list.clientWidth;const n=HEROES.length;const GAP=9;/* 整體卡牌 +10%：以面板寬 ×1.1 計算，但不超出視窗 */const cw=Math.min(242,Math.max(100,(W*1.1-4*GAP)/5.86),(window.innerWidth-32-4*GAP)/5.86);list.style.setProperty('--hs-cw',cw+'px');
+function hsLayout(){const list=$('hs-list');const W=list.clientWidth;const n=HEROES.length;const GAP=9;/* 整體卡牌 +10%：以面板寬 ×1.1 計算，但不超出視窗 */const cw=Math.min(242,Math.max(100,(W*1.1-4*GAP)/5.86),(window.innerWidth/uiScale-32-4*GAP)/5.86);list.style.setProperty('--hs-cw',cw+'px');
  /* 依縮放後的實際卡寬累加，讓卡與卡的邊距一律為 GAP；0→1→2→2.5 為錨點，拖曳時線性插值 */
  const hw=[HS_SCALES[0]*cw/2,HS_SCALES[1]*cw/2,HS_SCALES[2]*cw/2];const X1=hw[0]+GAP+hw[1],X2=X1+hw[1]+GAP+hw[2],X25=X2+hw[2]+GAP/2;
  const posOf=o=>{const a=Math.abs(o),sgn=Math.sign(o);let x;if(a<=1)x=X1*a;else if(a<=2)x=X1+(X2-X1)*(a-1);else x=X2+(X25-X2)*(a-2)*2;return sgn*x;};const step=X1;list.style.setProperty('--hs-h',(cw*1.55*HS_SCALES[0])+'px');
@@ -929,7 +931,7 @@ function hsLayout(){const list=$('hs-list');const W=list.clientWidth;const n=HER
  /* 容器高度 = 中心卡實際縮放後高度，使上下間距一致 */const cc=cards[((center%n)+n)%n];if(cc){const hh=cc.offsetHeight*HS_SCALES[0];if(Math.abs(hh-list.clientHeight)>1)list.style.setProperty('--hs-h',hh+'px');}
  /* 面板實際佔用高度（含縮放後的卡片）超過視窗時，整體等比縮小 */
  const panel=document.querySelector('.hs-panel');panel.style.setProperty('--hs-fit',1);
- requestAnimationFrame(()=>{const rects=[document.querySelector('.hs-head'),$('hs-go'),...cards].map(e=>e.getBoundingClientRect());const top=Math.min(...rects.map(r=>r.top)),bottom=Math.max(...rects.map(r=>r.bottom));const span=bottom-top,avail=window.innerHeight-16;if(span>avail)panel.style.setProperty('--hs-fit',Math.max(.5,avail/span).toFixed(3));});
+ requestAnimationFrame(()=>{const rects=[document.querySelector('.hs-head'),$('hs-go'),...cards].map(e=>e.getBoundingClientRect());const top=Math.min(...rects.map(r=>r.top)),bottom=Math.max(...rects.map(r=>r.bottom));const span=(bottom-top)/uiScale,avail=(document.documentElement.classList.contains('ui-scaled')?DESIGN_H:window.innerHeight)-16;if(span>avail)panel.style.setProperty('--hs-fit',Math.max(.5,avail/span).toFixed(3));});
  const ci=((center%n)+n)%n;$('hs-go').disabled=false;$('hs-go').querySelector('span').textContent=`${HEROES[ci].name} · ${HEROES[ci].title}`;}
 function buildHeroSelect(){const list=$('hs-list');list.innerHTML=HEROES.map((h,i)=>`<button class="hs-card" data-i="${i}" type="button"><small>${h.title}</small><div class="hs-figure"><div class="hero-sprite hero-${h.art}"></div></div><strong>${h.name}</strong></button>`).join('');
  const n=HEROES.length;let drag=null;
@@ -999,7 +1001,7 @@ document.addEventListener('keydown',e=>{if(e.code==='Space'&&e.target===document
 function handleError(error){console.error(error);busy=false;updateUI();toast('旅程暫時停住，請重新出征再試一次。');}
 /* 整體 UI 縮放：高度不足 600px 時，把 860px 高的設計稿等比縮到視窗高度 */
 const DESIGN_H=860;let uiScale=1;
-function fitUI(){const h=window.innerHeight,w=window.innerWidth;const game=document.querySelector('.game');const root=document.documentElement;if(h<600){uiScale=h/DESIGN_H;root.classList.add('ui-scaled');root.style.setProperty('--s',uiScale);game.style.width=(w/uiScale)+'px';}else{uiScale=1;root.classList.remove('ui-scaled');root.style.setProperty('--s',1);game.style.width='';}}
+function fitUI(){const h=window.innerHeight,w=window.innerWidth;const game=document.querySelector('.game');const root=document.documentElement;if(h<600){uiScale=h/DESIGN_H;root.classList.add('ui-scaled');root.style.setProperty('--s',uiScale);game.style.width=(w/uiScale)+'px';root.style.setProperty('--design-w',(w/uiScale)+'px');}else{uiScale=1;root.classList.remove('ui-scaled');root.style.setProperty('--s',1);game.style.width='';root.style.setProperty('--design-w','100%');}if(!$('hero-select').hidden&&typeof hsLayout==='function')hsLayout();}
 fitUI();window.addEventListener('resize',fitUI);window.addEventListener('orientationchange',()=>setTimeout(fitUI,60));
 new ResizeObserver(resize).observe(map);
 buildMap();updateUI();resize();drawDie(20);buildHeroSelect();applyHero();showHeroSelect();
