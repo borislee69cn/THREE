@@ -665,6 +665,42 @@ html.ui-scaled,html.ui-scaled body{overflow:hidden}
 .dice-empty-dialog p{margin:8px 0 14px;text-align:center;color:#6b4c2a;font-size:16px}
 .dice-empty-dialog .reset-actions{display:flex;gap:10px;justify-content:center}
 .dice-empty-dialog .gold-button{margin:0;width:auto;padding:12px 22px;white-space:nowrap}.dice-empty-dialog .soft-button{white-space:nowrap}
+/* 戰鬥視窗底部：顯示剩餘骰子數（與主畫面同步） */
+.duel-panel .pending-hint{font-size:15px;color:#7a5a33;letter-spacing:1px}
+.duel-panel .pending-hint b{color:#1a78d2;font-size:17px;margin-left:2px}
+/* === 戰鬥視窗字級：等比放大 1.25，且最小不低於 20px === */
+.duel-heading{font-size:40px}
+.duel-col small{font-size:20px}
+.duel-col strong{font-size:50px}
+.duel-panel .battle-line{font-size:20px;min-height:30px}
+.duel-panel .hp-copy{font-size:20px;margin-bottom:6px}
+.duel-panel .hp-track{height:16px}
+.duel-panel .hp-area{width:min(520px,100%)}
+.duel-panel .gold-button{font-size:24px;min-height:84px;width:min(520px,100%)}
+.duel-panel .gold-button span{font-size:20px;margin-top:4px}
+.duel-panel .pending-hint{font-size:20px}
+.duel-panel .pending-hint b{font-size:22px}
+.duel-panel .battle-result{font-size:27px}
+@media (max-height:600px){.duel-heading{font-size:24px}.duel-col small{font-size:14px}.duel-col strong{font-size:26px}.duel-panel .battle-line{font-size:14px;min-height:20px}.duel-panel .hp-copy{font-size:13px}.duel-panel .gold-button{font-size:17px;min-height:56px}.duel-panel .gold-button span{font-size:12px}.duel-panel .pending-hint{font-size:13px}.duel-panel .pending-hint b{font-size:14px}}
+/* === 戰鬥視窗：上下間距縮減 50% === */
+.duel-panel{padding:9px 40px 10px}
+.duel-heading{margin:0 0 2px}
+.duel-col{gap:2px}
+.duel-art{height:270px}
+.duel-mid{height:270px}
+.duel-panel .battle-line{margin:2px 0 4px;min-height:26px}
+.duel-panel .hp-area{margin:0 auto}
+.duel-panel .hp-copy{margin-bottom:3px}
+.duel-panel .gold-button{margin:6px auto 0;min-height:76px;padding:8px 20px}
+.duel-panel .pending-hint{margin:6px 0 0;min-height:0}
+.duel-panel .battle-result{margin:4px 0 0}
+/* === 跳格落地：小圓格下沉回彈 === */
+.tile.landed{animation:tile-sink .4s cubic-bezier(.2,.9,.3,1.2) both}
+@keyframes tile-sink{0%{transform:translate(-50%,-50%);box-shadow:0 8px 0 #a4814d,0 11px 5px #72543330}35%{transform:translate(-50%,-50%) translateY(6px) scale(.96);box-shadow:0 2px 0 #a4814d,0 4px 3px #72543330}100%{transform:translate(-50%,-50%);box-shadow:0 8px 0 #a4814d,0 11px 5px #72543330}}
+.tile.visited.landed{animation-name:tile-sink-green}
+@keyframes tile-sink-green{0%{transform:translate(-50%,-50%);box-shadow:0 8px 0 #658b52,0 11px 5px #72543320}35%{transform:translate(-50%,-50%) translateY(6px) scale(.96);box-shadow:0 2px 0 #658b52,0 4px 3px #72543320}100%{transform:translate(-50%,-50%);box-shadow:0 8px 0 #658b52,0 11px 5px #72543320}}
+.tile.boss.landed,.tile.treasure.landed{animation-name:tile-sink-red}
+@keyframes tile-sink-red{0%{transform:translate(-50%,-50%);box-shadow:0 7px #a83326,0 10px 7px #4a1a123a}35%{transform:translate(-50%,-50%) translateY(6px) scale(.97);box-shadow:0 1px #a83326,0 3px 4px #4a1a123a}100%{transform:translate(-50%,-50%);box-shadow:0 7px #a83326,0 10px 7px #4a1a123a}}
 </style>
 </head>
 <body class="show-index">
@@ -790,7 +826,7 @@ const fmt=n=>n.toLocaleString('en-US');
 /* 骰子庫存：前進與戰鬥每擲一次各消耗 1 顆；用完時彈窗提示補充 */
 const DICE_START=30,DICE_REFILL=10;let diceLeft=DICE_START,autoRoll=false;
 function useDie(){if(diceLeft<=0){$('dice-empty-dialog').showModal();return false;}diceLeft--;refreshDice();return true;}
-function refreshDice(){const el=$('dice-left');if(!el)return;el.textContent=diceLeft;document.querySelector('.dice-count').classList.toggle('empty',diceLeft<=0);document.querySelector('.dice-widget').classList.toggle('empty',diceLeft<=0);}
+function refreshDice(){const el=$('dice-left');if(!el)return;el.textContent=diceLeft;document.querySelectorAll('.dice-left-mirror').forEach(m=>m.textContent=diceLeft);document.querySelector('.dice-count').classList.toggle('empty',diceLeft<=0);document.querySelector('.dice-widget').classList.toggle('empty',diceLeft<=0);}
 let journey=new Journey(),busy=false,soundOn=false,audioCtx=null,rollValue=20,following=true;
 let camera={x:0,y:0,scale:1},pointer=null,lastCameraTime=0,toastTimer;
 /* 格點間距統一（沿路徑等距，小格中心距 120px、鄰接大格 144px）。TILE_GAP 為每格間距 px；排不下的格點自動往右延伸，地圖寬度隨之拉長。 */
@@ -850,12 +886,14 @@ function tone(frequency,duration=.1,type='sine',gain=.065,delay=0){if(!soundOn)r
 function chime(){[523,659,784,1046].forEach((n,i)=>tone(n,.22,'sine',.08,i*.09));}
 function coinFx(p,amount){const el=make('span','coin-float',`+${fmt(amount)}`);el.style.cssText=pointStyle(p);$('map-fx').append(el);setTimeout(()=>el.remove(),1150);tone(960,.12);if(!reduced)for(let i=0;i<7;i++){const s=make('i','spark');s.style.cssText=pointStyle(p)+`--dx:${Math.cos(i/7*Math.PI*2)*47}px;--dy:${Math.sin(i/7*Math.PI*2)*35-28}px;`;$('map-fx').append(s);setTimeout(()=>s.remove(),750);}}
 async function hop(from,to){const start=performance.now(),duration=reduced?80:215;const target=cameraFor(to),old={...camera};return new Promise(resolve=>{const frame=now=>{const t=clamp((now-start)/duration,0,1);const k=t*t*(3-2*t);positionHero({x:from.x+(to.x-from.x)*k,y:from.y+(to.y-from.y)*k},reduced?0:Math.sin(t*Math.PI)*35);camera.x=old.x+(target.x-old.x)*k;camera.y=old.y+(target.y-old.y)*k;renderCamera();if(t<1)requestAnimationFrame(frame);else resolve();};requestAnimationFrame(frame);});}
+/* 落地下沉：被踩到的圓格瞬間下壓再回彈 */
+function landTile(i){const t=document.querySelector(`.tile[data-step="${i}"]`);if(!t)return;t.classList.remove('landed');void t.offsetWidth;t.classList.add('landed');setTimeout(()=>t.classList.remove('landed'),420);}
 async function walk(){
  following=true;busy=true;updateUI();$('step-count').classList.add('show');
  while(journey.phase==='moving'){
   const old=journey.position;const next=old+1;const remaining=journey.pending;
   $('step-count').textContent=`前進中 · 剩 ${remaining} 格`;
-  await hop(points[old],points[next]);const result=journey.step();tone(330+(next%4)*45,.06,'triangle',.035);
+  await hop(points[old],points[next]);landTile(next);const result=journey.step();tone(330+(next%4)*45,.06,'triangle',.035);
   if(result.reward)coinFx(points[next],result.reward);updateUI();
   if(journey.phase==='battle'){await sleep(280);showBattle();break;}
   if(journey.phase==='won'){await sleep(400);showTreasure();break;}
@@ -865,7 +903,7 @@ async function walk(){
  if(journey.phase==='ready'){toast(`已前進至第 ${journey.position} 格，繼續擲骰吧！`);announce(`抵達第 ${journey.position} 格，共有 ${journey.coins} 金幣。`);}
 }
 async function travel(){if(busy)return;if(journey.phase==='won'){showTreasure();return;}if(journey.phase!=='ready')return;if(!$('hero-select').hidden)return;if(!useDie())return;busy=true;following=true;updateUI();await moveCameraTo(points[journey.position]);const value=randomDie();$('roll-label').textContent='擲骰中…';$('roll-hint').textContent='好運，隨骰而來';toast('骰子轉動中…');await animateDie(value);journey.travel(value);toast(`擲出 ${value} 點！${HEROES[heroIndex].name}前進 ${journey.pending} 格`);announce(`擲出 ${value} 點`);tone(740,.15);await sleep(200);await walk();}
-function showBattle(){const g=journey.enemy;$('battle-name').textContent=g.name;$('battle-title').textContent=g.title;$('battle-eyebrow').textContent=g.isTreasure?'開啟秘寶':g.name==='曹操'?'最後一戰':'據點挑戰';$('battle-art').className=`sprite sprite-${g.art}`;$('battle-line').textContent=`「${g.line}」`;$('battle-result').hidden=true;$('hp-area').hidden=false;$('attack').hidden=false;$('attack').disabled=false;$('attack').innerHTML='擲骰交鋒 <span>點數 = 傷害</span>';$('continue').hidden=true;$('victory-seal').classList.remove('show');$('damage').className='damage';$('pending-hint').textContent=g.isTreasure?'封印值歸 0 即可開啟天下秘寶':'擊敗頭目後重新擲骰前進（多餘點數不保留）';updateHp();($('battle-dim').hidden=false,$('battle-dialog').show());$('attack').focus();tone(180,.25,'triangle',.12);setTimeout(()=>tone(220,.25,'triangle',.1),100);announce(`遇到${g.name}，戰力${g.hp}。擲骰交鋒，點數等於傷害。`);}
+function showBattle(){const g=journey.enemy;$('battle-name').textContent=g.name;$('battle-title').textContent=g.title;$('battle-eyebrow').textContent=g.isTreasure?'開啟秘寶':g.name==='曹操'?'最後一戰':'據點挑戰';$('battle-art').className=`sprite sprite-${g.art}`;$('battle-line').textContent=`「${g.line}」`;$('battle-result').hidden=true;$('hp-area').hidden=false;$('attack').hidden=false;$('attack').disabled=false;$('attack').innerHTML='擲骰交鋒 <span>點數 = 傷害</span>';$('continue').hidden=true;$('victory-seal').classList.remove('show');$('damage').className='damage';$('pending-hint').innerHTML=`剩餘骰子：<b class="dice-left-mirror">${diceLeft}</b>`;updateHp();($('battle-dim').hidden=false,$('battle-dialog').show());$('attack').focus();tone(180,.25,'triangle',.12);setTimeout(()=>tone(220,.25,'triangle',.1),100);announce(`遇到${g.name}，戰力${g.hp}。擲骰交鋒，點數等於傷害。`);}
 function updateHp(){$('hp-label')&&($('hp-label').textContent=journey.enemy.isTreasure?'秘寶封印':'頭目戰力');$('hp-number').textContent=`${journey.hp} / ${journey.enemy.hp}`;$('hp-fill').style.width=`${journey.hp/journey.enemy.hp*100}%`;}
 async function attack(){if(busy||journey.phase!=='battle')return;if(diceLeft<=0){$('dice-empty-dialog').showModal();return;}diceLeft--;refreshDice();busy=true;$('attack').disabled=true;const value=randomDie();await animateDie(value,true);const result=journey.attack(value);$('damage').textContent=`−${result.damage}`;$('damage').classList.remove('hit');void $('damage').offsetWidth;$('damage').classList.add('hit');$('battle-art').classList.remove('shake');void $('battle-art').offsetWidth;$('battle-art').classList.add('shake');tone(110,.22,'sawtooth',.05);updateHp();updateUI();await sleep(reduced?150:750);if(result.wonBattle&&journey.enemy.isTreasure){$('battle-dialog').close();$('battle-dim').hidden=true;busy=false;updateUI();showTreasure();return;}if(result.wonBattle){$('victory-seal').classList.add('show');$('battle-line').textContent=journey.enemy.name==='曹操'?'亂世梟雄已敗，前往王城秘庫！':'據點已突破，下一段征途等著你。';$('hp-area').hidden=true;$('battle-result').hidden=false;$('battle-result').textContent=`戰利品 +${fmt(result.reward)} 金幣`;$('attack').hidden=true;$('continue').hidden=false;chime();$('continue').focus();announce(`擊敗${journey.enemy.name}，獲得${result.reward}金幣。`);}else{$('battle-line').textContent=`擲出 ${value} 點，造成 ${result.damage} 點傷害！`;$('attack').innerHTML='再擲一骰 <span>點數 = 傷害</span>';$('attack').disabled=false;announce(`${result.damage}傷害，頭目剩餘${journey.hp}戰力。`);}busy=false;updateUI();}
 async function continueJourney(){if(busy||journey.phase!=='victory')return;busy=true;$('battle-dialog').close();$('battle-dim').hidden=true;journey.continue();updateUI();await moveCameraTo(points[journey.position]);if(journey.phase==='moving'){toast(`乘勝追擊！接續前進 ${journey.pending} 格`);await walk();}else{busy=false;updateUI();toast('據點突破！再次擲骰，繼續出征。');$('roll').focus();}}
