@@ -710,6 +710,15 @@ html.ui-scaled .hero-select{position:absolute;left:0;top:0;height:860px;transfor
 /* 骰子／投擲鍵：程式焦點不顯示藍色外框（鍵盤操作仍保留 focus-visible） */
 .dice-widget .roll-button:focus,.dice-widget .throw-button:focus,.dice-widget .add-dice:focus{outline:none}
 .dice-widget .roll-button:focus-visible,.dice-widget .throw-button:focus-visible{outline:3px solid #ffd45a;outline-offset:2px}
+/* === 頭目戰力條：依剩餘比例變色，≤20% 閃爍 === */
+#hp-fill{transition:width .35s ease,background .35s ease}
+.hp-area.hp-mid #hp-fill{background:linear-gradient(#ffd66a,#f29a2a)}
+.hp-area.hp-low #hp-fill{background:linear-gradient(#ff6b5a,#c8261c)}
+.hp-area.hp-critical #hp-fill{animation:hp-blink .55s ease-in-out infinite}
+.hp-area.hp-critical .hp-copy strong{color:#c8261c;animation:hp-text-blink .55s ease-in-out infinite}
+.hp-area.hp-critical .hp-track{box-shadow:0 0 0 2px #ff5a4a66,0 0 14px #ff3b2a88}
+@keyframes hp-blink{50%{filter:brightness(1.7) saturate(1.3);opacity:.55}}
+@keyframes hp-text-blink{50%{opacity:.35}}
 </style>
 </head>
 <body class="show-index">
@@ -913,7 +922,7 @@ async function walk(){
 }
 async function travel(){if(busy)return;if(journey.phase==='won'){showTreasure();return;}if(journey.phase!=='ready')return;if(!$('hero-select').hidden)return;if(!useDie())return;busy=true;following=true;updateUI();await moveCameraTo(points[journey.position]);const value=randomDie();$('roll-label').textContent='擲骰中…';$('roll-hint').textContent='好運，隨骰而來';toast('骰子轉動中…');await animateDie(value);journey.travel(value);toast(`擲出 ${value} 點！${HEROES[heroIndex].name}前進 ${journey.pending} 格`);announce(`擲出 ${value} 點`);tone(740,.15);await sleep(200);await walk();}
 function showBattle(){const g=journey.enemy;$('battle-name').textContent=g.name;$('battle-title').textContent=g.title;$('battle-eyebrow').textContent=g.isTreasure?'開啟秘寶':g.name==='曹操'?'最後一戰':'據點挑戰';$('battle-art').className=`sprite sprite-${g.art}`;$('battle-line').textContent=`「${g.line}」`;$('battle-result').hidden=true;$('hp-area').hidden=false;$('attack').hidden=false;$('attack').disabled=false;$('attack').innerHTML='擲骰交鋒 <span>點數 = 傷害</span>';$('continue').hidden=true;$('victory-seal').classList.remove('show');$('damage').className='damage';$('pending-hint').innerHTML=`剩餘骰子：<b class="dice-left-mirror">${diceLeft}</b>`;updateHp();($('battle-dim').hidden=false,$('battle-dialog').show());$('attack').focus();tone(180,.25,'triangle',.12);setTimeout(()=>tone(220,.25,'triangle',.1),100);announce(`遇到${g.name}，戰力${g.hp}。擲骰交鋒，點數等於傷害。`);}
-function updateHp(){$('hp-label')&&($('hp-label').textContent=journey.enemy.isTreasure?'秘寶封印':'頭目戰力');$('hp-number').textContent=`${journey.hp} / ${journey.enemy.hp}`;$('hp-fill').style.width=`${journey.hp/journey.enemy.hp*100}%`;}
+function updateHp(){$('hp-label')&&($('hp-label').textContent=journey.enemy.isTreasure?'秘寶封印':'頭目戰力');$('hp-number').textContent=`${journey.hp} / ${journey.enemy.hp}`;const ratio=journey.hp/journey.enemy.hp;$('hp-fill').style.width=`${ratio*100}%`;/* 血條依比例變色：>60% 紅橘、30~60% 橙黃、<30% 深紅；≤20% 進入閃爍 */const area=$('hp-area');area.classList.toggle('hp-mid',ratio<=.6&&ratio>.3);area.classList.toggle('hp-low',ratio<=.3);area.classList.toggle('hp-critical',ratio<=.2&&ratio>0);}
 async function attack(){if(busy||journey.phase!=='battle')return;if(diceLeft<=0){$('dice-empty-dialog').showModal();return;}diceLeft--;refreshDice();busy=true;$('attack').disabled=true;const value=randomDie();await animateDie(value,true);const result=journey.attack(value);$('damage').textContent=`−${result.damage}`;$('damage').classList.remove('hit');void $('damage').offsetWidth;$('damage').classList.add('hit');$('battle-art').classList.remove('shake');void $('battle-art').offsetWidth;$('battle-art').classList.add('shake');tone(110,.22,'sawtooth',.05);updateHp();updateUI();await sleep(reduced?150:750);if(result.wonBattle&&journey.enemy.isTreasure){$('battle-dialog').close();$('battle-dim').hidden=true;busy=false;updateUI();showTreasure();return;}if(result.wonBattle){$('victory-seal').classList.add('show');$('battle-line').textContent=journey.enemy.name==='曹操'?'亂世梟雄已敗，前往王城秘庫！':'據點已突破，下一段征途等著你。';$('hp-area').hidden=true;$('battle-result').hidden=false;$('battle-result').textContent=`戰利品 +${fmt(result.reward)} 金幣`;$('attack').hidden=true;$('continue').hidden=false;chime();$('continue').focus();announce(`擊敗${journey.enemy.name}，獲得${result.reward}金幣。`);}else{$('battle-line').textContent=`擲出 ${value} 點，造成 ${result.damage} 點傷害！`;$('attack').innerHTML='再擲一骰 <span>點數 = 傷害</span>';$('attack').disabled=false;announce(`${result.damage}傷害，頭目剩餘${journey.hp}戰力。`);}busy=false;updateUI();}
 async function continueJourney(){if(busy||journey.phase!=='victory')return;busy=true;$('battle-dialog').close();$('battle-dim').hidden=true;journey.continue();updateUI();await moveCameraTo(points[journey.position]);if(journey.phase==='moving'){toast(`乘勝追擊！接續前進 ${journey.pending} 格`);await walk();}else{busy=false;updateUI();toast('據點突破！再次擲骰，繼續出征。');$('roll').focus();}}
 function showTreasure(){$('final-coins').textContent=fmt(journey.coins);$('final-rolls').textContent=journey.rolls;if(!$('treasure-dialog').open)$('treasure-dialog').showModal();chime();celebrate();toast('六將皆破，天下秘寶入手！');announce(`征途完成！擊敗6位頭目，共獲得${journey.coins}金幣。`);}
@@ -923,7 +932,7 @@ function applyHero(){const h=HEROES[heroIndex];for(const el of [$('hero-token-sp
 /* 選角輪盤：拖曳左右循環，中心卡即為選角；點卡片可直接轉到中心 */
 const HS_SCALES=[1.44,1.21,1.0];/* 中 1.2×1.2、鄰 1.1×1.1、外 1.0 */let hsPos=4;/* 目前位於中心的索引（可為小數，拖曳中） */
 function cw_extra(){return 0;}
-function hsLayout(){const list=$('hs-list');const W=list.clientWidth;const n=HEROES.length;const GAP=9;/* 整體卡牌 +10%：以面板寬 ×1.1 計算，但不超出視窗 */const cw=Math.min(242,Math.max(100,(W*1.1-4*GAP)/5.86),(window.innerWidth/uiScale-32-4*GAP)/5.86);list.style.setProperty('--hs-cw',cw+'px');
+function hsLayout(){const list=$('hs-list');const W=list.clientWidth;const n=HEROES.length;const GAP=9;/* 整體卡牌 +10%：以面板寬 ×1.1 計算，但不超出視窗 */const cw=Math.min(266,Math.max(100,(W*1.21-4*GAP)/5.86),(window.innerWidth/uiScale-32-4*GAP)/5.86);/* 整體卡牌再 +10% */list.style.setProperty('--hs-cw',cw+'px');
  /* 依縮放後的實際卡寬累加，讓卡與卡的邊距一律為 GAP；0→1→2→2.5 為錨點，拖曳時線性插值 */
  const hw=[HS_SCALES[0]*cw/2,HS_SCALES[1]*cw/2,HS_SCALES[2]*cw/2];const X1=hw[0]+GAP+hw[1],X2=X1+hw[1]+GAP+hw[2],X25=X2+hw[2]+GAP/2;
  const posOf=o=>{const a=Math.abs(o),sgn=Math.sign(o);let x;if(a<=1)x=X1*a;else if(a<=2)x=X1+(X2-X1)*(a-1);else x=X2+(X25-X2)*(a-2)*2;return sgn*x;};const step=X1;list.style.setProperty('--hs-h',(cw*1.55*HS_SCALES[0])+'px');
