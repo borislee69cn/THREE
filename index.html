@@ -701,6 +701,10 @@ html.ui-scaled,html.ui-scaled body{overflow:hidden}
 @keyframes tile-sink-green{0%{transform:translate(-50%,-50%);box-shadow:0 8px 0 #658b52,0 11px 5px #72543320}35%{transform:translate(-50%,-50%) translateY(6px) scale(.96);box-shadow:0 2px 0 #658b52,0 4px 3px #72543320}100%{transform:translate(-50%,-50%);box-shadow:0 8px 0 #658b52,0 11px 5px #72543320}}
 .tile.boss.landed,.tile.treasure.landed{animation-name:tile-sink-red}
 @keyframes tile-sink-red{0%{transform:translate(-50%,-50%);box-shadow:0 7px #a83326,0 10px 7px #4a1a123a}35%{transform:translate(-50%,-50%) translateY(6px) scale(.97);box-shadow:0 1px #a83326,0 3px 4px #4a1a123a}100%{transform:translate(-50%,-50%);box-shadow:0 7px #a83326,0 10px 7px #4a1a123a}}
+/* === 選角畫面：稱號不換行；整體依視窗高度自動縮放以免爆版 === */
+.hs-card small{white-space:nowrap}
+.hs-panel{transform-origin:50% 50%;transform:scale(var(--hs-fit,1));max-height:none}
+.hs-list{flex:none}
 </style>
 </head>
 <body class="show-index">
@@ -923,6 +927,9 @@ function hsLayout(){const list=$('hs-list');const W=list.clientWidth;const n=HER
   c.style.setProperty('--hs-x',posOf(o)+'px');c.style.setProperty('--k',k.toFixed(3));c.style.setProperty('--hs-z',String(10-Math.round(ao*2)));c.style.opacity=ao>2.1?String(Math.max(0,(2.5-ao)/0.4)):'1';/* 邊緣循環時淡出淡入 */
   c.classList.toggle('center',i===((center%n)+n)%n);});
  /* 容器高度 = 中心卡實際縮放後高度，使上下間距一致 */const cc=cards[((center%n)+n)%n];if(cc){const hh=cc.offsetHeight*HS_SCALES[0];if(Math.abs(hh-list.clientHeight)>1)list.style.setProperty('--hs-h',hh+'px');}
+ /* 面板實際佔用高度（含縮放後的卡片）超過視窗時，整體等比縮小 */
+ const panel=document.querySelector('.hs-panel');panel.style.setProperty('--hs-fit',1);
+ requestAnimationFrame(()=>{const rects=[document.querySelector('.hs-head'),$('hs-go'),...cards].map(e=>e.getBoundingClientRect());const top=Math.min(...rects.map(r=>r.top)),bottom=Math.max(...rects.map(r=>r.bottom));const span=bottom-top,avail=window.innerHeight-16;if(span>avail)panel.style.setProperty('--hs-fit',Math.max(.5,avail/span).toFixed(3));});
  const ci=((center%n)+n)%n;$('hs-go').disabled=false;$('hs-go').querySelector('span').textContent=`${HEROES[ci].name} · ${HEROES[ci].title}`;}
 function buildHeroSelect(){const list=$('hs-list');list.innerHTML=HEROES.map((h,i)=>`<button class="hs-card" data-i="${i}" type="button"><small>${h.title}</small><div class="hs-figure"><div class="hero-sprite hero-${h.art}"></div></div><strong>${h.name}</strong></button>`).join('');
  const n=HEROES.length;let drag=null;
