@@ -1364,6 +1364,27 @@ body.show-index .tile.boss::after,body.show-index .tile.treasure::after{font-siz
 @media (max-width:760px){.duel-art .damage{font-size:34px;right:-5%}}
 /* 名稱上移：放大後的人物頂端不再遮到名字 */
 .duel-col small{position:relative;z-index:8;margin-bottom:8px;transform:translateY(-10px)}
+
+/* ===== 手機橫式（整體等比縮放 .ui-scaled 啟用時）：本次新增元件回復桌機規格，避免與縮放重複縮小 ===== */
+html.ui-scaled .brand-logo{width:clamp(158px,25.3vw,332px)!important}
+html.ui-scaled .hs-title-img.hs-logo img{width:min(300px,34vw)!important}
+html.ui-scaled .hs-card strong{font-size:26px!important;letter-spacing:2px!important;text-indent:2px!important}
+html.ui-scaled .vs-mark{font-size:96px!important;-webkit-text-stroke:3px #8a2a12!important}
+html.ui-scaled .duel-col small{font-size:30px!important;letter-spacing:4px!important;text-indent:4px!important}
+html.ui-scaled .duel-art .victory-seal{font-size:56px!important;border-width:8px!important;padding:4px 14px!important;letter-spacing:6px!important}
+html.ui-scaled .duel-art .damage{font-size:56px!important;right:-8%!important}
+html.ui-scaled .reward-banner strong{font-size:44px!important}
+html.ui-scaled .hero-token .speech{font-size:14px!important;max-width:230px!important;left:62%!important;bottom:calc(100% + 6px)!important}
+html.ui-scaled .landmark.legend .legend-chest{width:260px!important;padding-top:64px!important}
+html.ui-scaled .landmark.legend .legend-chest .lc-img{width:240px!important;height:192px!important}
+html.ui-scaled .landmark.legend .legend-chest .lc-timer{font-size:32px!important;padding:8px 24px!important;border-width:4px!important;bottom:calc(100% - 64px)!important}
+html.ui-scaled .dice-widget,html.ui-scaled .dice-widget.roll-dock{width:308px!important}
+html.ui-scaled .hero-summary{width:308px!important;min-width:308px!important;max-width:308px!important}
+html.ui-scaled .dice-widget .throw-button strong{font-size:26px!important;letter-spacing:3px!important}
+html.ui-scaled .hero-summary::before,html.ui-scaled .dice-widget .dice-tab{font-size:24px!important}
+html.ui-scaled .jump-select option{font-size:14px}
+/* 對話框與地圖：確保橫式時可完整顯示，不出現橫向捲動 */
+html.ui-scaled body{overflow:hidden}
 </style>
 </head>
 <body class="show-index">
