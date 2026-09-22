@@ -1401,6 +1401,18 @@ html.ui-scaled body{overflow:hidden}
 /* === 視窗尺寸變動期間：暫停所有動畫與高成本濾鏡，避免連續重繪 === */
 html.resizing *,html.resizing *::before,html.resizing *::after{animation-play-state:paused!important;transition:none!important}
 html.resizing .hs-card.center .hs-figure::before,html.resizing .hs-card.center .hs-figure::after,html.resizing .hero-sprite,html.resizing .sprite,html.resizing .fly-item{filter:none!important}
+
+/* ===== 觸控裝置安全模式（手機橫式縮放時最吃記憶體）：關閉背景模糊、地圖上的常駐動畫與所有濾鏡 ===== */
+@media (pointer:coarse){
+ .hero-select,dialog::backdrop,.battle-dim{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+ .tile .chest-icon,.hero-aura,.hero-aura i,.hero-aura b,.landmark .sprite,.legend-chest .lc-img,.legend-chest .lc-timer,.checkpoint .portrait,.cp-timer,.hs-card.center .hs-figure .hero-sprite{animation:none!important}
+ .tile .chest-icon,.landmark .sprite,.hero-token .hero-sprite,.hero-token .portrait,.token-shadow,.landmark,.tile,.checkpoint .portrait,.brand-logo,.hs-title-img img,.hero-sprite,.sprite,.battle-hero,.roll-button,.roll-button canvas,.dice-widget .roll-button,.dice-panel,.legend-chest .lc-img{filter:none!important}
+ .hs-card.center .hs-figure .hero-sprite{filter:drop-shadow(0 0 5px var(--g2))!important}
+ .hero-aura{display:none!important}
+ .fly-item,.coin-float,.speech,.card-banner{filter:none!important}
+ .world,.landscape img{will-change:auto!important}
+ .hero-token{will-change:auto!important}
+}
 </style>
 </head>
 <body class="show-index">
