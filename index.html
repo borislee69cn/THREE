@@ -1397,6 +1397,10 @@ html.ui-scaled body{overflow:hidden}
  .duel>.duel-col .sprite.shake{filter:none!important}
  .reward-banner .rw-coin,.reward-banner .rw-die{filter:none!important}
 }
+
+/* === 視窗尺寸變動期間：暫停所有動畫與高成本濾鏡，避免連續重繪 === */
+html.resizing *,html.resizing *::before,html.resizing *::after{animation-play-state:paused!important;transition:none!important}
+html.resizing .hs-card.center .hs-figure::before,html.resizing .hs-card.center .hs-figure::after,html.resizing .hero-sprite,html.resizing .sprite,html.resizing .fly-item{filter:none!important}
 </style>
 </head>
 <body class="show-index">
@@ -1756,7 +1760,7 @@ function buildHeroSelect(){const list=$('hs-list');list.innerHTML=HEROES.map((h,
   if(!wasMoved&&target){/* 點擊：把該卡轉到中心 */const i=+target.dataset.i;let o=i-hsPos;o=((o+n/2)%n+n)%n-n/2;if(Math.abs(o)>=.5){hsPos=((hsPos+Math.round(o))%n+n)%n;tone(720,.08,'triangle',.05);}}
   hsLayout();if(wasMoved)tone(620,.05,'triangle',.04);};
  list.addEventListener('pointerup',end);list.addEventListener('pointercancel',end);list.addEventListener('pointerleave',e=>{if(drag&&e.pointerId===drag.id)end(e);});
- window.addEventListener('resize',()=>{if(!$('hero-select').hidden)hsLayout();});
+ /* 選角頁的 resize 重排交由 fitUI 去抖動後統一呼叫 */
  $('hs-go').addEventListener('click',()=>{heroIndex=((Math.round(hsPos)%n)+n)%n;applyHero();$('hero-select').hidden=true;setTimeout(()=>heroSpeak(true),350);tone(880,.15,'triangle',.08);toast(`${HEROES[heroIndex].name}出征！點擊右下骰子開始前進`);$('roll').focus();});}
 function showHeroSelect(){hsPos=heroIndex;$('hero-select').hidden=false;requestAnimationFrame(hsLayout);}
 function refreshTiles(){tiles.forEach((e,i)=>{const type=tileType(i);e.className=`tile ${type}`;e.innerHTML=type==='coin'?'<span class="tile-item">金</span>':type==='chest'?`<div class="chest-icon" title="青銅寶箱：道具卡" style="--cd:-${(Math.random()*5).toFixed(2)}s;--cdur:${(3.6+Math.random()*3).toFixed(2)}s"></div>`:type==='silver'?`<div class="chest-icon silver" title="白銀寶箱：銀幣" style="--cd:-${(Math.random()*5).toFixed(2)}s;--cdur:${(3.6+Math.random()*3).toFixed(2)}s"></div>`:type==='gold'?`<div class="chest-icon gold" title="黃金寶箱：星幣" style="--cd:-${(Math.random()*5).toFixed(2)}s;--cdur:${(3.6+Math.random()*3).toFixed(2)}s"></div>`:type==='diamond'?`<div class="chest-icon diamond" title="鑽石寶箱：骰子" style="--cd:-${(Math.random()*5).toFixed(2)}s;--cdur:${(3.6+Math.random()*3).toFixed(2)}s"></div>`:i===0?'<span class="start-label">啟程</span>':'';});}
@@ -1842,8 +1846,13 @@ function handleError(error){console.error(error);busy=false;updateUI();toast('�
 /* 整體 UI 縮放：高度不足 600px 時，把 860px 高的設計稿等比縮到視窗高度 */
 const DESIGN_H=860;let uiScale=1;
 function fitUI(){const h=window.innerHeight,w=window.innerWidth;const game=document.querySelector('.game');const root=document.documentElement;if(h<600){uiScale=h/DESIGN_H;root.classList.add('ui-scaled');root.style.setProperty('--s',uiScale);game.style.width=(w/uiScale)+'px';root.style.setProperty('--design-w',(w/uiScale)+'px');}else{uiScale=1;root.classList.remove('ui-scaled');root.style.setProperty('--s',1);game.style.width='';root.style.setProperty('--design-w','100%');}if(!$('hero-select').hidden&&typeof hsLayout==='function')hsLayout();}
-fitUI();window.addEventListener('resize',fitUI);window.addEventListener('orientationchange',()=>setTimeout(fitUI,60));
-new ResizeObserver(resize).observe(map);
+fitUI();
+/* 行動裝置收合／展開瀏覽器工具列時會連續觸發 resize，若每次都重算整頁縮放與重繪會造成 GPU 記憶體暴增而崩潰：
+   改為去抖動（等尺寸穩定 160ms 後才套用），期間加上 .resizing 暫停動畫與濾鏡，且尺寸變化小於 2px 時忽略 */
+let fitTimer=null,lastFitH=window.innerHeight,lastFitW=window.innerWidth;
+function scheduleFit(){document.documentElement.classList.add('resizing');clearTimeout(fitTimer);fitTimer=setTimeout(()=>{const h=window.innerHeight,w=window.innerWidth;if(Math.abs(h-lastFitH)>=2||Math.abs(w-lastFitW)>=2){lastFitH=h;lastFitW=w;fitUI();}requestAnimationFrame(()=>document.documentElement.classList.remove('resizing'));},160);}
+window.addEventListener('resize',scheduleFit);window.addEventListener('orientationchange',()=>setTimeout(scheduleFit,60));
+let mapRsTimer=null;new ResizeObserver(()=>{clearTimeout(mapRsTimer);mapRsTimer=setTimeout(resize,120);}).observe(map);
 buildMap();updateUI();resize();drawDie(20);buildHeroSelect();applyHero();showHeroSelect();
 })();
 
