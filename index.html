@@ -1413,6 +1413,40 @@ html.resizing .hs-card.center .hs-figure::before,html.resizing .hs-card.center .
  .world,.landscape img{will-change:auto!important}
  .hero-token{will-change:auto!important}
 }
+
+/* === 手機橫式：整體版面避開動態島／瀏海（左右安全區），LOGO 依設計稿寬度比例縮放以符合桌機比例 === */
+html.ui-scaled .hero-select{left:var(--design-left,0px)}
+html.ui-scaled .game{left:var(--design-left,0px)}
+html.ui-scaled body{background:#3a635a}
+html.ui-scaled{--sal:0px;--sar:0px}/* 容器本身已避開安全區，內部不再重複留白 */
+html.ui-scaled .brand-logo{width:clamp(158px,calc(var(--design-w,1440px) * .253),332px)!important}
+html.ui-scaled .hs-title-img.hs-logo img{width:min(300px,calc(var(--design-w,1440px) * .34))!important}
+
+/* === 出陣鍵：依附圖紅框比例放大約 1.56 倍，並以上邊為基準上移，對齊紅框上邊線 === */
+.hs-go{scale:1;translate:0 -33px;transform-origin:50% 0;height:87px!important;padding:0 64px!important;border-radius:44px!important}/* 改為實際尺寸取代非等比縮放，避免文字變形 *//* 寬 1.56 × 0.8；高度略降至 1.12 */
+.hs-go:active{transform:translateY(3px)}
+@media (max-width:760px){.hs-go{scale:1;translate:0 -20px;height:60px!important;padding:0 40px!important}}
+
+/* === 選角頁：移除中心人物後方的人物疊影（輪廓底光與掃光層），僅保留人物本身的薄光 === */
+.hs-card.center .hs-figure::before,.hs-card.center .hs-figure::after{display:none!important;content:none!important}
+.hs-card.center .hs-figure .hero-sprite{filter:drop-shadow(0 0 6px var(--g2)) drop-shadow(0 10px 8px #00000066)}
+
+/* === 出陣文字對齊選角名字：同字型、26px、900 粗體、米白字加深棕描邊與陰影 === */
+.hs-go strong{font-family:'Noto Sans TC','PingFang TC','Microsoft JhengHei','Heiti TC',sans-serif!important;font-size:26px!important;font-weight:900!important;letter-spacing:2px!important;text-indent:2px!important;color:#fff3cf!important;-webkit-text-stroke:1.5px #3a2410;paint-order:stroke fill;text-shadow:0 3px 0 #3a2410,0 0 4px #000,0 0 8px #000,0 0 12px #000000cc!important;line-height:1.15}
+@media (max-width:760px){.hs-go strong{font-size:20px!important;letter-spacing:1px!important;text-indent:1px!important;-webkit-text-stroke:1px #3a2410}}
+
+/* === 出陣字級對齊名字的「視覺」大小：名字 26px × 中心卡縮放 2.09 ≈ 54px === */
+.hs-go strong{font-size:54px!important;letter-spacing:4px!important;text-indent:4px!important;-webkit-text-stroke:3px #3a2410;text-shadow:0 6px 0 #3a2410,0 0 8px #000,0 0 16px #000,0 0 24px #000000cc!important}
+@media (max-width:760px){.hs-go strong{font-size:36px!important;letter-spacing:2px!important;text-indent:2px!important;-webkit-text-stroke:2px #3a2410}}
+
+/* === 出陣文字：移除陰影與外光暈，僅保留描邊 === */
+.hs-go strong{text-shadow:none!important}
+
+/* === 選角頁 LOGO：等比放大 10%，以上緣為基準向下擴張（上緣位置不變） === */
+.hs-title-img.hs-logo img{scale:1.155;transform-origin:50% 0}/* 1.1 × 1.05 */
+
+/* === 選角頁：五位角色整體上移 6px === */
+.hs-list{translate:0 -12px}
 </style>
 </head>
 <body class="show-index">
@@ -1857,7 +1891,9 @@ document.addEventListener('keydown',e=>{if(e.code==='Space'&&e.target===document
 function handleError(error){console.error(error);busy=false;updateUI();toast('旅程暫時停住，請重新出征再試一次。');}
 /* 整體 UI 縮放：高度不足 600px 時，把 860px 高的設計稿等比縮到視窗高度 */
 const DESIGN_H=860;let uiScale=1;
-function fitUI(){const h=window.innerHeight,w=window.innerWidth;const game=document.querySelector('.game');const root=document.documentElement;if(h<600){uiScale=h/DESIGN_H;root.classList.add('ui-scaled');root.style.setProperty('--s',uiScale);game.style.width=(w/uiScale)+'px';root.style.setProperty('--design-w',(w/uiScale)+'px');}else{uiScale=1;root.classList.remove('ui-scaled');root.style.setProperty('--s',1);game.style.width='';root.style.setProperty('--design-w','100%');}if(!$('hero-select').hidden&&typeof hsLayout==='function')hsLayout();}
+/* 量測實際安全區（動態島／瀏海）：以探針元素讀出 env() 值 */
+function safeInsets(){let pr=document.getElementById('sa-probe');if(!pr){pr=document.createElement('div');pr.id='sa-probe';pr.style.cssText='position:fixed;left:0;top:0;width:0;height:0;visibility:hidden;pointer-events:none;padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)';document.body.append(pr);}const cs=getComputedStyle(pr);return {l:parseFloat(cs.paddingLeft)||0,r:parseFloat(cs.paddingRight)||0,t:parseFloat(cs.paddingTop)||0,b:parseFloat(cs.paddingBottom)||0};}
+function fitUI(){const h=window.innerHeight,w=window.innerWidth;const game=document.querySelector('.game');const root=document.documentElement;if(h<600){uiScale=h/DESIGN_H;root.classList.add('ui-scaled');root.style.setProperty('--s',uiScale);const sa=safeInsets();const usable=Math.max(320,w-sa.l-sa.r);game.style.width=(usable/uiScale)+'px';game.style.left=sa.l+'px';root.style.setProperty('--design-w',(usable/uiScale)+'px');root.style.setProperty('--design-left',sa.l+'px');}else{uiScale=1;root.classList.remove('ui-scaled');root.style.setProperty('--s',1);game.style.width='';game.style.left='';root.style.setProperty('--design-w','100%');root.style.setProperty('--design-left','0px');}if(!$('hero-select').hidden&&typeof hsLayout==='function')hsLayout();}
 fitUI();
 /* 行動裝置收合／展開瀏覽器工具列時會連續觸發 resize，若每次都重算整頁縮放與重繪會造成 GPU 記憶體暴增而崩潰：
    改為去抖動（等尺寸穩定 160ms 後才套用），期間加上 .resizing 暫停動畫與濾鏡，且尺寸變化小於 2px 時忽略 */
