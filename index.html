@@ -1907,7 +1907,7 @@ async function openLegendChest(name){const st=legendChests[name];if(!st||st.open
  await sleep(2000);banner.remove();img.classList.remove('grow');busy=false;updateUI();announce(`開啟${name}的傳奇寶箱，獲得 ${silver} 銀幣。`);}
 /* 地 bar 傳奇寶箱頭像被點擊：於圖像上方、膠囊框之上顯示提示（fixed 定位，避免被地 bar 裁切） */
 let cpTipTimers=[],cpTipRaf=0;
-function tipScale(){return 1;}/* 「計時結束後才可開啟」提示：各裝置統一 18px 字級（框線、內距、箭頭同步維持原比例） */
+function tipScale(){const r=document.documentElement;return r.classList.contains('ui-scaled')?(parseFloat(getComputedStyle(r).getPropertyValue('--s'))||1):1;}/* 「計時結束後才可開啟」提示：字級為設計稿 18px，與其他介面一樣隨手機等比縮放，手機與電腦上相對畫面的大小一致 */
 function showCpTip(anchorEl,text){document.querySelectorAll('.cp-tip').forEach(t=>t.remove());cpTipTimers.forEach(clearTimeout);cancelAnimationFrame(cpTipRaf);const k=tipScale();const tip=make('div','cp-tip',text);tip.setAttribute('role','status');tip.style.setProperty('--k',k);document.body.append(tip);
  const place=()=>{if(!tip.isConnected)return;const r=anchorEl.getBoundingClientRect();const w=tip.offsetWidth,vw=document.documentElement.clientWidth,cx=r.left+r.width/2;const x=Math.min(Math.max(cx,w/2+6),vw-w/2-6);tip.style.left=x+'px';tip.style.top=Math.max(r.top-8*k,tip.offsetHeight+4)+'px';tip.style.setProperty('--arrow-x',(w/2+(cx-x))+'px');};
  place();const follow=()=>{place();if(tip.isConnected)cpTipRaf=requestAnimationFrame(follow);};cpTipRaf=requestAnimationFrame(follow);/* 地圖鏡頭移動時提示跟著寶箱 */
