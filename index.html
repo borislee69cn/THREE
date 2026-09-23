@@ -735,7 +735,7 @@ html.ui-scaled .hero-select{position:absolute;left:0;top:0;height:860px;transfor
 .hero-aura i{position:absolute;inset:0;border-radius:50%;border:4px solid #ffe27a;box-shadow:0 0 14px #ff9f1a,0 0 4px #fff,inset 0 0 14px #ffd45a88;opacity:0;animation:aura-ring 1.8s ease-out infinite}
 .hero-aura i:nth-child(2){animation-delay:.6s}
 .hero-aura i:nth-child(3){animation-delay:1.2s}
-@keyframes aura-ring{0%{transform:scale(.85);opacity:0}10%{opacity:1}100%{transform:scale(2.3);opacity:0}}
+@keyframes aura-ring{0%{transform:scale(.85);opacity:0}10%{opacity:1}100%{transform:scale(1.65);opacity:0}}/* 擴散距離縮減 50%：由圓框邊緣（scale 1）往外 1.3 → 0.65 */
 @keyframes aura-breathe{0%,100%{transform:scale(.95);opacity:.75}50%{transform:scale(1.15);opacity:1}}
 .hero-pin{z-index:1}
 /* === 金幣圖示改用美術星星金幣圖 === */
@@ -1511,6 +1511,16 @@ html.ui-scaled .speech.two-line,html.ui-scaled .hero-token .speech.two-line,.her
 /* === 主角地圖圖標（圓框＋尖角）等比放大 21%（1.1 再放大 10%），以尖角底部為錨點，落點不變 === */
 .hero-token .hero-pin{scale:1.21;transform-origin:50% 100%}
 .hero-token .speech{translate:0 -19px}/* 圖標放大後頂部上移約 19px，旁白氣泡同步上移，維持原間距 */
+/* === 鬥氣波紋：中心對齊圖標圓框圓心（素材圓心 147.1,132.5／300×324，隨圖標 ×1.21 換算），尺寸同步 ×1.21 使波紋仍由圓框邊緣擴散 === */
+.hero-token .hero-aura{left:38.03px;top:30.94px;width:92px;height:92px}
+/* === 行動裝置開啟主角波紋：僅用 transform／opacity 動畫（GPU 合成、不重繪），並拿掉光暈模糊濾鏡以符合觸控安全模式；系統要求減少動態時仍關閉 === */
+@media (pointer:coarse) and (prefers-reduced-motion:no-preference){
+ .hero-token .hero-aura{display:block!important}
+ .hero-token .hero-aura i{animation:aura-ring 1.8s ease-out infinite!important;will-change:transform,opacity}
+ .hero-token .hero-aura i:nth-child(2){animation-delay:.6s!important}
+ .hero-token .hero-aura i:nth-child(3){animation-delay:1.2s!important}
+ .hero-token .hero-aura b{animation:aura-breathe 1.6s ease-in-out infinite!important;filter:none!important}
+}
 /* === 停格對位：圖標箭頭尖端與圓格中心點在同一垂直線上（水平置中），高度維持原設定 === */
 .hero-token{translate:1.78px 0}/* 箭頭尖端在素材中略偏左 1.2px（token 座標），×1.5 後補正 1.78px */
 .hero-token .hero-pin .portrait{position:absolute;width:53px;height:53px;left:50%;top:40.1%;transform:translate(-50%,-50%);border-radius:50%;overflow:hidden;background:#dfeee8;border:0!important;box-shadow:none!important;filter:none!important;margin:0!important}
@@ -1651,8 +1661,9 @@ html.ui-scaled .dice-empty-dialog{width:min(560px,calc(var(--design-w,1440px) - 
 .landmark.legend .legend-chest .lc-tip::after{content:'';position:absolute;left:50%;top:100%;transform:translateX(-50%);border:9px solid transparent;border-top-color:#8a6a3a}
 .landmark.legend .legend-chest .lc-tip.hide{animation:lc-tip-out .35s ease-in both}
 /* === 地 bar 傳奇寶箱被點擊：於頭像上方（壓在膠囊框之上）顯示提示 === */
-.cp-tip{position:fixed;z-index:9999;left:0;top:0;transform:translate(-50%,-100%);background:#fff;color:#4a3117;border:3px solid #8a6a3a;border-radius:12px;padding:6px 14px;font:900 16px/1.2 "Noto Sans TC","Microsoft JhengHei",sans-serif;white-space:nowrap;box-shadow:0 3px 0 #6f5430,0 6px 14px #00000033;pointer-events:none;animation:cp-tip-in .3s cubic-bezier(.2,1.4,.4,1) both}
-.cp-tip::after{content:'';position:absolute;left:var(--arrow-x,50%);top:100%;transform:translateX(-50%);border:8px solid transparent;border-top-color:#8a6a3a}
+/* 地圖寶箱與地 bar 共用同一款提示：統一掛在 body（fixed），尺寸 × --k（手機等比縮放時 = 介面縮放倍率），兩處視窗與字級一致 */
+.cp-tip{position:fixed;z-index:9999;left:0;top:0;transform:translate(-50%,-100%);background:#fff;color:#4a3117;border:calc(3px*var(--k,1)) solid #8a6a3a;border-radius:calc(13px*var(--k,1));padding:calc(7px*var(--k,1)) calc(16px*var(--k,1));font:900 calc(18px*var(--k,1))/1.2 "Noto Sans TC","Microsoft JhengHei",sans-serif;white-space:nowrap;box-shadow:0 calc(3px*var(--k,1)) 0 #6f5430,0 6px 14px #00000033;pointer-events:none;animation:cp-tip-in .3s cubic-bezier(.2,1.4,.4,1) both}
+.cp-tip::after{content:'';position:absolute;left:var(--arrow-x,50%);top:100%;transform:translateX(-50%);border:calc(8px*var(--k,1)) solid transparent;border-top-color:#8a6a3a}
 .cp-tip.hide{animation:cp-tip-out .35s ease-in both}
 @keyframes cp-tip-in{0%{opacity:0;transform:translate(-50%,calc(-100% + 8px)) scale(.7)}100%{opacity:1;transform:translate(-50%,-100%)}}
 @keyframes cp-tip-out{100%{opacity:0;transform:translate(-50%,calc(-100% - 8px))}}
@@ -1893,10 +1904,14 @@ async function openLegendChest(name){const st=legendChests[name];if(!st||st.open
  const banner=make('div','card-banner reward-banner reward-gold',`<small>${name}的傳奇寶箱開啟</small><strong><i class="rw-coin silver" aria-label="銀幣"></i><span class="rw-x">x</span><span class="rw-num">${bitmapNum(fmt(silver),'sil')}</span></strong>`);game.append(banner);banner.style.left=cx+'px';banner.style.top=cy+'px';silverFx(p,silver,banner);
  await sleep(2000);banner.remove();img.classList.remove('grow');busy=false;updateUI();announce(`開啟${name}的傳奇寶箱，獲得 ${silver} 銀幣。`);}
 /* 地 bar 傳奇寶箱頭像被點擊：於圖像上方、膠囊框之上顯示提示（fixed 定位，避免被地 bar 裁切） */
-let cpTipTimers=[];
-function showCpTip(cp,text){document.querySelectorAll('.cp-tip').forEach(t=>t.remove());cpTipTimers.forEach(clearTimeout);const anchorEl=cp.querySelector('.portrait')||cp;const r=anchorEl.getBoundingClientRect();const tip=make('div','cp-tip',text);tip.setAttribute('role','status');document.body.append(tip);const w=tip.offsetWidth,vw=document.documentElement.clientWidth,cx=r.left+r.width/2;const x=Math.min(Math.max(cx,w/2+6),vw-w/2-6);tip.style.left=x+'px';tip.style.top=Math.max(r.top-8,tip.offsetHeight+4)+'px';tip.style.setProperty('--arrow-x',(w/2+(cx-x))+'px');cpTipTimers=[setTimeout(()=>tip.classList.add('hide'),1500),setTimeout(()=>tip.remove(),1850)];}
-$('campaign-items').addEventListener('click',e=>{const cp=e.target.closest('.checkpoint.legend');if(!cp)return;const i=[...$('campaign-items').children].indexOf(cp);const g=GENERALS[i];const st=g&&legendChests[g.name];if(!st||st.opened)return;const ready=Date.now()>=st.end;showCpTip(cp,ready?'倒數結束，點擊地圖寶箱開啟':'計時結束後才可開啟');tone(440,.08,'triangle',.04);});
-$('landmarks').addEventListener('click',e=>{const lc=e.target.closest('.legend-chest');if(!lc)return;e.stopPropagation();const name=lc.dataset.general;const st=legendChests[name];if(!st)return;if(st.opened){toast('這個傳奇寶箱已經開啟過了');return;}if(Date.now()<st.end){/* 倒數中：在寶箱上方顯示提示 */lc.querySelectorAll('.lc-tip').forEach(t=>t.remove());const tip=make('div','lc-tip','計時結束後才可開啟');lc.append(tip);setTimeout(()=>tip.classList.add('hide'),1500);setTimeout(()=>tip.remove(),1850);tone(440,.08,'triangle',.04);return;}openLegendChest(name).catch(handleError);});
+let cpTipTimers=[],cpTipRaf=0;
+function tipScale(){const r=document.documentElement;return r.classList.contains('ui-scaled')?Math.max(parseFloat(getComputedStyle(r).getPropertyValue('--s'))||1,.72):1;/* 等比縮放時跟著介面倍率，但字級不低於 13px 以維持手機可讀性 */}
+function showCpTip(anchorEl,text){document.querySelectorAll('.cp-tip').forEach(t=>t.remove());cpTipTimers.forEach(clearTimeout);cancelAnimationFrame(cpTipRaf);const k=tipScale();const tip=make('div','cp-tip',text);tip.setAttribute('role','status');tip.style.setProperty('--k',k);document.body.append(tip);
+ const place=()=>{if(!tip.isConnected)return;const r=anchorEl.getBoundingClientRect();const w=tip.offsetWidth,vw=document.documentElement.clientWidth,cx=r.left+r.width/2;const x=Math.min(Math.max(cx,w/2+6),vw-w/2-6);tip.style.left=x+'px';tip.style.top=Math.max(r.top-8*k,tip.offsetHeight+4)+'px';tip.style.setProperty('--arrow-x',(w/2+(cx-x))+'px');};
+ place();const follow=()=>{place();if(tip.isConnected)cpTipRaf=requestAnimationFrame(follow);};cpTipRaf=requestAnimationFrame(follow);/* 地圖鏡頭移動時提示跟著寶箱 */
+ cpTipTimers=[setTimeout(()=>tip.classList.add('hide'),1500),setTimeout(()=>{tip.remove();cancelAnimationFrame(cpTipRaf);},1850)];}
+$('campaign-items').addEventListener('click',e=>{const cp=e.target.closest('.checkpoint.legend');if(!cp)return;const i=[...$('campaign-items').children].indexOf(cp);const g=GENERALS[i];const st=g&&legendChests[g.name];if(!st||st.opened)return;const ready=Date.now()>=st.end;showCpTip(cp.querySelector('.portrait')||cp,ready?'倒數結束，點擊地圖寶箱開啟':'計時結束後才可開啟');tone(440,.08,'triangle',.04);});
+$('landmarks').addEventListener('click',e=>{const lc=e.target.closest('.legend-chest');if(!lc)return;e.stopPropagation();const name=lc.dataset.general;const st=legendChests[name];if(!st)return;if(st.opened){toast('這個傳奇寶箱已經開啟過了');return;}if(Date.now()<st.end){/* 倒數中：在寶箱上方顯示提示 */showCpTip(lc.querySelector('.lc-timer')||lc,'計時結束後才可開啟');tone(440,.08,'triangle',.04);return;}openLegendChest(name).catch(handleError);});
 function updateUI(){
  if(!walletTween.coins){shown.coins=journey.coins;renderWallet('coins');}if(!walletTween.silver){shown.silver=journey.silver;renderWallet('silver');}$('progress-fill').style.width=`${journey.position/LAST*100}%`;$('position-label').textContent=`${journey.position} / ${LAST} 格`;
  const next=GENERALS.find(g=>!journey.defeated.includes(g.name));
