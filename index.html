@@ -1416,6 +1416,8 @@ html.resizing .hs-card.center .hs-figure::before,html.resizing .hs-card.center .
 
 /* === 手機橫式：整體版面避開動態島／瀏海（左右安全區），LOGO 依設計稿寬度比例縮放以符合桌機比例 === */
 html.ui-scaled .hero-select{left:var(--design-left,0px)}
+/* 手機等比縮放：縮放容器改 fixed 定位。absolute 時其寬度會撐大文件可捲動範圍，行動瀏覽器因此把版面視窗鎖在舊的較大寬度（innerWidth 不再變小），造成畫面縮在左上、右側與下方留空；fixed 元素不計入文件溢出，可切斷此回授 */
+html.ui-scaled .game,html.ui-scaled .hero-select{position:fixed!important}
 html.ui-scaled .game{left:var(--design-left,0px)}
 html.ui-scaled body{background:#3a635a}
 html.ui-scaled{--sal:0px;--sar:0px}/* 容器本身已避開安全區，內部不再重複留白 */
@@ -2019,7 +2021,7 @@ function applyHero(){const h=HEROES[heroIndex];for(const el of [$('hero-token-sp
 /* 選角輪盤：拖曳左右循環，中心卡即為選角；點卡片可直接轉到中心 */
 const HS_SCALES=[2.09,1.531,1.1];/* 中心 2.09；左一右一 1.3915 × 1.1；最外側 1.1 *//* 中 1.2×1.2、鄰 1.1×1.1、外 1.0 */let hsPos=4;/* 目前位於中心的索引（可為小數，拖曳中） */
 function cw_extra(){return 0;}
-function hsLayout(){const list=$('hs-list');const W=list.clientWidth;const n=HEROES.length;const GAP=9;/* 整體卡牌 +10%：以面板寬 ×1.1 計算，但不超出視窗 */const cw=Math.min(293,Math.max(100,(W*1.331-4*GAP)/5.86),(window.innerWidth/uiScale+96-4*GAP)/5.86);/* 整體卡牌 1.1³；允許最外側卡略超出視窗邊緣 */list.style.setProperty('--hs-cw',cw+'px');
+function hsLayout(){const list=$('hs-list');const W=list.clientWidth;const n=HEROES.length;const GAP=9;/* 整體卡牌 +10%：以面板寬 ×1.1 計算，但不超出視窗 */const cw=Math.min(293,Math.max(100,(W*1.331-4*GAP)/5.86),(vpSize().w/uiScale+96-4*GAP)/5.86);/* 整體卡牌 1.1³；允許最外側卡略超出視窗邊緣 */list.style.setProperty('--hs-cw',cw+'px');
  /* 依縮放後的實際卡寬累加，讓卡與卡的邊距一律為 GAP；0→1→2→2.5 為錨點，拖曳時線性插值 */
  const hw=[HS_SCALES[0]*cw/2,HS_SCALES[1]*cw/2,HS_SCALES[2]*cw/2];const SPREAD=0.66;/* 左右人物間距：原本的 66%（0.6 × 1.1），人物部分重疊，由 z-index 分層 */const X1=(hw[0]+GAP+hw[1])*SPREAD,X2=X1*1.56,X25=X2+X1*.5;/* 外側與左一／右一的間隔 = 0.8 × 0.7 = 0.56 倍鄰位間距 */
  const posOf=o=>{const a=Math.abs(o),sgn=Math.sign(o);let x;if(a<=1)x=X1*a;else if(a<=2)x=X1+(X2-X1)*(a-1);else x=X2+(X25-X2)*(a-2)*2;return sgn*x;};const step=X1;list.style.setProperty('--hs-h',(cw*1.55*HS_SCALES[0])+'px');
@@ -2030,7 +2032,7 @@ function hsLayout(){const list=$('hs-list');const W=list.clientWidth;const n=HER
  /* 容器高度 = 中心卡實際縮放後高度，使上下間距一致 */const cc=cards[((center%n)+n)%n];if(cc){const hh=cc.offsetHeight*HS_SCALES[0];if(Math.abs(hh-list.clientHeight)>1)list.style.setProperty('--hs-h',hh+'px');}
  /* 面板實際佔用高度（含縮放後的卡片）超過視窗時，整體等比縮小 */
  const panel=document.querySelector('.hs-panel');panel.style.setProperty('--hs-fit',1);
- requestAnimationFrame(()=>{const rects=[document.querySelector('.hs-head'),$('hs-go'),...cards].map(e=>e.getBoundingClientRect());const top=Math.min(...rects.map(r=>r.top)),bottom=Math.max(...rects.map(r=>r.bottom));const span=(bottom-top)/uiScale,avail=(document.documentElement.classList.contains('ui-scaled')?DESIGN_H:window.innerHeight)-16;if(span>avail)panel.style.setProperty('--hs-fit',Math.max(.5,avail/span).toFixed(3));});
+ requestAnimationFrame(()=>{const rects=[document.querySelector('.hs-head'),$('hs-go'),...cards].map(e=>e.getBoundingClientRect());const top=Math.min(...rects.map(r=>r.top)),bottom=Math.max(...rects.map(r=>r.bottom));const span=(bottom-top)/uiScale,avail=(document.documentElement.classList.contains('ui-scaled')?DESIGN_H:vpSize().h)-16;if(span>avail)panel.style.setProperty('--hs-fit',Math.max(.5,avail/span).toFixed(3));});
  const ci=((center%n)+n)%n;$('hs-go').disabled=false;$('hs-go').querySelector('span').textContent=`${HEROES[ci].name} · ${HEROES[ci].title}`;}
 function buildHeroSelect(){const list=$('hs-list');list.innerHTML=HEROES.map((h,i)=>`<button class="hs-card" data-i="${i}" data-art="${h.art}" type="button"><div class="hs-figure"><div class="hero-sprite hero-${h.art}"></div></div><strong>${h.name}．${h.title.split('·').pop().trim()}</strong></button>`).join('');/* 名字與稱號整合：關羽．青龍偃月 */
  const n=HEROES.length;let drag=null;
@@ -2131,18 +2133,29 @@ function release(){dragMoved=!!(pointer&&pointer.moved);pointer=null;map.classLi
 document.addEventListener('keydown',e=>{if(e.code==='Space'&&e.target===document.body&&!document.querySelector('dialog[open]')){e.preventDefault();travel().catch(handleError);}if((e.code==='ArrowLeft'||e.code==='ArrowRight')&&document.activeElement===map&&!busy){e.preventDefault();following=false;camera.x=clamp(camera.x+(e.code==='ArrowRight'?140:-140),0,WORLD.width-map.clientWidth/camera.scale);renderCamera();}});
 function handleError(error){console.error(error);busy=false;updateUI();toast('旅程暫時停住，請重新出征再試一次。');}
 /* 整體 UI 縮放：高度不足 600px 時，把 860px 高的設計稿等比縮到視窗高度 */
-const DESIGN_H=860;let uiScale=1;
+const DESIGN_H=860;let uiScale=1,lastFitH=0,lastFitW=0;
 /* 量測實際安全區（動態島／瀏海）：以探針元素讀出 env() 值 */
 function safeInsets(){let pr=document.getElementById('sa-probe');if(!pr){pr=document.createElement('div');pr.id='sa-probe';pr.style.cssText='position:fixed;left:0;top:0;width:0;height:0;visibility:hidden;pointer-events:none;padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)';document.body.append(pr);}const cs=getComputedStyle(pr);return {l:parseFloat(cs.paddingLeft)||0,r:parseFloat(cs.paddingRight)||0,t:parseFloat(cs.paddingTop)||0,b:parseFloat(cs.paddingBottom)||0};}
 /* 依中央據點頭像膠囊的實際寬度，設定左右膠囊與它的等距間隔（兩側各 36px） */
 function layoutBar(){const cp=document.querySelector('.campaign');if(!cp)return;const sc=uiScale||1;const w=cp.getBoundingClientRect().width/sc;document.documentElement.style.setProperty('--bar-gap',(w+72)+'px');/* 頭像膠囊底邊對齊左右膠囊底邊 */const hs=document.querySelector('.hero-summary'),game=document.querySelector('.game');if(hs&&game){const gr=game.getBoundingClientRect(),hr=hs.getBoundingClientRect();cp.style.bottom=((gr.bottom-hr.bottom)/sc)+'px';cp.style.top='auto';/* 骰子膠囊底邊對齊獎勵膠囊底邊（量測差值後以 translate 補正） */const dp=document.querySelector('.dice-widget .dice-panel'),dw=document.querySelector('.dice-widget');if(dp&&dw){dw.style.translate='0 0';const dr=dp.getBoundingClientRect();const dy=(hr.bottom-dr.bottom)/sc;if(Math.abs(dy)>.5)dw.style.translate=`0 ${dy}px`;}}}
-function fitUI(){const h=window.innerHeight,w=window.innerWidth;const game=document.querySelector('.game');const root=document.documentElement;if(h<600){uiScale=h/DESIGN_H;root.classList.add('ui-scaled');root.style.setProperty('--s',uiScale);const sa=safeInsets();const usable=Math.max(320,w-sa.l-sa.r);game.style.width=(usable/uiScale)+'px';game.style.left=sa.l+'px';root.style.setProperty('--design-w',(usable/uiScale)+'px');root.style.setProperty('--design-left',sa.l+'px');}else{uiScale=1;root.classList.remove('ui-scaled');root.style.setProperty('--s',1);game.style.width='';game.style.left='';root.style.setProperty('--design-w','100%');root.style.setProperty('--design-left','0px');}if(!$('hero-select').hidden&&typeof hsLayout==='function')hsLayout();}
+/* 實際可視區尺寸：以 position:fixed;inset:0 探針量測（= 固定定位背景實際覆蓋的範圍）。iOS Safari 橫式收合／展開工具列時 innerWidth/innerHeight 可能延遲或與版面不一致，造成縮放畫面只佔部分螢幕 */
+function vpSize(){let pr=document.getElementById('vp-probe');if(!pr){pr=document.createElement('div');pr.id='vp-probe';pr.style.cssText='position:fixed;left:0;top:0;right:0;bottom:0;visibility:hidden;pointer-events:none;z-index:-1';document.body.append(pr);}const r=pr.getBoundingClientRect();return {w:Math.round(r.width)||window.innerWidth,h:Math.round(r.height)||window.innerHeight};}
+/* 窄版橫式手機（寬 < 844，如 iPhone SE 667×375）等比縮放時，CSS 寬度斷點仍依實際寬度判斷，會把直式手機用的 (max-width:760px) 規則套進縮放後的桌機版面而跑版。
+   此時把樣式表中的寬度條件改以 844px 評估（與已調校好的 844～932 橫式手機一致）；其他情況還原原始條件 */
+const MQ_REF_W=844;let mqRules=null;
+function remapWidthMedia(effW){if(!mqRules){mqRules=[];const walk=list=>{for(const r of list){if(r.media&&r.cssRules){if(/(min|max)-width/.test(r.media.mediaText))mqRules.push({r,orig:r.media.mediaText});walk(r.cssRules);}}};for(const sh of document.styleSheets){let rs;try{rs=sh.cssRules}catch(e){continue}walk(rs);}}
+ for(const m of mqRules){const txt=effW==null?m.orig:m.orig.replace(/\(\s*(min|max)-width\s*:\s*([\d.]+)px\s*\)/g,(x,k,n)=>{n=+n;const ok=k==='min'?effW>=n:effW<=n;return ok?'(min-width: 0px)':'(max-width: 0px)';});if(m.r.media.mediaText!==txt)m.r.media.mediaText=txt;}}
+function fitUI(){const vs=vpSize(),h=vs.h,w=vs.w;lastFitH=h;lastFitW=w;remapWidthMedia(h<600&&w<MQ_REF_W?MQ_REF_W:null);const game=document.querySelector('.game');const root=document.documentElement;if(h<600){uiScale=h/DESIGN_H;root.classList.add('ui-scaled');root.style.setProperty('--s',uiScale);const sa=safeInsets();const usable=Math.max(320,w-sa.l-sa.r);game.style.width=(usable/uiScale)+'px';game.style.left=sa.l+'px';root.style.setProperty('--design-w',(usable/uiScale)+'px');root.style.setProperty('--design-left',sa.l+'px');}else{uiScale=1;root.classList.remove('ui-scaled');root.style.setProperty('--s',1);game.style.width='';game.style.left='';root.style.setProperty('--design-w','100%');root.style.setProperty('--design-left','0px');}if(!$('hero-select').hidden&&typeof hsLayout==='function')hsLayout();}
 fitUI();requestAnimationFrame(layoutBar);setTimeout(layoutBar,300);
 /* 行動裝置收合／展開瀏覽器工具列時會連續觸發 resize，若每次都重算整頁縮放與重繪會造成 GPU 記憶體暴增而崩潰：
    改為去抖動（等尺寸穩定 160ms 後才套用），期間加上 .resizing 暫停動畫與濾鏡，且尺寸變化小於 2px 時忽略 */
-let fitTimer=null,lastFitH=window.innerHeight,lastFitW=window.innerWidth;
-function scheduleFit(){document.documentElement.classList.add('resizing');clearTimeout(fitTimer);fitTimer=setTimeout(()=>{const h=window.innerHeight,w=window.innerWidth;if(Math.abs(h-lastFitH)>=2||Math.abs(w-lastFitW)>=2){lastFitH=h;lastFitW=w;fitUI();}layoutBar();requestAnimationFrame(()=>document.documentElement.classList.remove('resizing'));},160);}
+let fitTimer=null;
+function scheduleFit(){document.documentElement.classList.add('resizing');clearTimeout(fitTimer);fitTimer=setTimeout(()=>{const vs=vpSize();if(Math.abs(vs.h-lastFitH)>=2||Math.abs(vs.w-lastFitW)>=2){fitUI();}layoutBar();requestAnimationFrame(()=>document.documentElement.classList.remove('resizing'));},160);}
 window.addEventListener('resize',scheduleFit);window.addEventListener('orientationchange',()=>setTimeout(scheduleFit,60));
+/* 補強：iOS 工具列變化有時不觸發 resize 或觸發時尺寸尚未更新 → 另監聽 visualViewport／pageshow，並每秒輕量比對一次實際尺寸（只比數字，不一致才重排） */
+if(window.visualViewport)visualViewport.addEventListener('resize',scheduleFit);
+window.addEventListener('pageshow',()=>setTimeout(scheduleFit,60));document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout(scheduleFit,60);});
+setInterval(()=>{if(document.hidden)return;const vs=vpSize();if(Math.abs(vs.h-lastFitH)>=2||Math.abs(vs.w-lastFitW)>=2)scheduleFit();},1000);
 let mapRsTimer=null;new ResizeObserver(()=>{clearTimeout(mapRsTimer);mapRsTimer=setTimeout(resize,120);}).observe(map);
 buildMap();updateUI();resize();drawDie(20);buildHeroSelect();applyHero();showHeroSelect();
 })();
