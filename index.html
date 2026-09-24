@@ -1912,6 +1912,13 @@ html.ui-scaled .hero-token .speech.two-line,html.ui-scaled .speech.two-line{max-
 html.ui-scaled .game,html.ui-scaled .hero-select{height:var(--design-h,860px)!important}
 .intro-tip{height:var(--app-h,100%);bottom:auto}
 @supports (height:100dvh){.intro-tip{height:100dvh}}
+
+/* ===== 選角頁（手機橫式）：對齊桌機參考畫面 1916×910 =====
+   1. 選角頁改用獨立縮放 --hs-s（目前可視高度 ÷ 910），不再沿用主畫面 860 設計高的 --s；五位武將、LOGO、出陣鍵、箭頭與桌機同比例
+   2. 容器高度固定為設計高 910，等比縮放後正好填滿可視高度：上下不再留白、版面位置與桌機一致
+   3. LOGO 寬度回復桌機規格 340px（桌機 min(340px,46vw) 之等價值，以選角頁設計寬換算） */
+html.ui-scaled .hero-select{height:var(--hs-design-h,910px)!important;width:var(--hs-design-w,var(--design-w,100%))!important;transform:scale(var(--hs-s,var(--s)))!important;transform-origin:0 0}
+html.ui-scaled .hs-title-img.hs-logo img{width:min(340px,calc(var(--hs-design-w,var(--design-w,1440px)) * .46))!important}
 </style>
 </head>
 <body class="show-index">
@@ -2269,7 +2276,9 @@ function applyHero(){const h=HEROES[heroIndex];for(const el of [$('hero-token-sp
 /* 選角輪盤：拖曳左右循環，中心卡即為選角；點卡片可直接轉到中心 */
 const HS_SCALES=[2.09,1.531,1.21];/* 中心 2.09；左一右一 1.531；最外側 1.1 × 1.1 *//* 中 1.2×1.2、鄰 1.1×1.1、外 1.0 */let hsPos=4;/* 目前位於中心的索引（可為小數，拖曳中） */
 function cw_extra(){return 0;}
-function hsLayout(){const list=$('hs-list');const W=list.clientWidth;const n=HEROES.length;const GAP=9;/* 整體卡牌 +10%：以面板寬 ×1.1 計算，但不超出視窗 */const cw=Math.min(293,Math.max(100,(W*1.331-4*GAP)/5.86),(window.innerWidth/uiScale+96-4*GAP)/5.86);/* 整體卡牌 1.1³；允許最外側卡略超出視窗邊緣 */list.style.setProperty('--hs-cw',cw+'px');
+/* 選角頁容器的設計稿寬度（桌機＝視窗寬；手機橫式＝可用寬 ÷ --hs-s，clientWidth 不受 transform 影響） */
+function hsDesignW(){const hs=$('hero-select');return (hs&&hs.clientWidth)||window.innerWidth;}
+function hsLayout(){const list=$('hs-list');const W=list.clientWidth;const n=HEROES.length;const GAP=9;/* 整體卡牌 +10%：以面板寬 ×1.1 計算，但不超出視窗 */const cw=Math.min(293,Math.max(100,(W*1.331-4*GAP)/5.86),(hsDesignW()+96-4*GAP)/5.86);/* 整體卡牌 1.1³；允許最外側卡略超出視窗邊緣 */list.style.setProperty('--hs-cw',cw+'px');
  /* 依縮放後的實際卡寬累加，讓卡與卡的邊距一律為 GAP；0→1→2→2.5 為錨點，拖曳時線性插值 */
  const hw=[HS_SCALES[0]*cw/2,HS_SCALES[1]*cw/2,HS_SCALES[2]*cw/2];const SPREAD=0.66;/* 左右人物間距：原本的 66%（0.6 × 1.1），人物部分重疊，由 z-index 分層 */const X1=(hw[0]+GAP+hw[1])*SPREAD,X2=X1*1.56,X25=X2+X1*.5;/* 外側與左一／右一的間隔 = 0.8 × 0.7 = 0.56 倍鄰位間距 */
  const posOf=o=>{const a=Math.abs(o),sgn=Math.sign(o);let x;if(a<=1)x=X1*a;else if(a<=2)x=X1+(X2-X1)*(a-1);else x=X2+(X25-X2)*(a-2)*2;return sgn*x;};const step=X1;list.style.setProperty('--hs-h',(cw*1.55*HS_SCALES[0])+'px');
@@ -2280,12 +2289,12 @@ function hsLayout(){const list=$('hs-list');const W=list.clientWidth;const n=HER
  /* 容器高度 = 中心卡實際縮放後高度，使上下間距一致 */const cc=cards[((center%n)+n)%n];if(cc){const hh=cc.offsetHeight*HS_SCALES[0];if(Math.abs(hh-list.clientHeight)>1)list.style.setProperty('--hs-h',hh+'px');}
  /* 面板實際佔用高度（含縮放後的卡片）超過視窗時，整體等比縮小 */
  const panel=document.querySelector('.hs-panel');panel.style.setProperty('--hs-fit',1);
- requestAnimationFrame(()=>{const rects=[document.querySelector('.hs-head'),$('hs-go'),...cards].map(e=>e.getBoundingClientRect());const top=Math.min(...rects.map(r=>r.top)),bottom=Math.max(...rects.map(r=>r.bottom));const span=(bottom-top)/uiScale,avail=(document.documentElement.classList.contains('ui-scaled')?DESIGN_H:window.innerHeight)-16;if(span>avail)panel.style.setProperty('--hs-fit',Math.max(.5,avail/span).toFixed(3));});
+ requestAnimationFrame(()=>{const rects=[document.querySelector('.hs-head'),$('hs-go'),...cards].map(e=>e.getBoundingClientRect());const top=Math.min(...rects.map(r=>r.top)),bottom=Math.max(...rects.map(r=>r.bottom));const span=(bottom-top)/hsScale,avail=(document.documentElement.classList.contains('ui-scaled')?HS_DESIGN_H:window.innerHeight)-16;/* 手機橫式以選角頁設計高 910 為準，與桌機 1916×910 參考畫面一致 */if(span>avail)panel.style.setProperty('--hs-fit',Math.max(.5,avail/span).toFixed(3));});
  const ci=((center%n)+n)%n;$('hs-go').disabled=false;$('hs-go').querySelector('span').textContent=`${HEROES[ci].name} · ${HEROES[ci].title}`;}
 function buildHeroSelect(){const list=$('hs-list');list.innerHTML=HEROES.map((h,i)=>`<button class="hs-card" data-i="${i}" data-art="${h.art}" type="button"><div class="hs-figure"><div class="hero-sprite hero-${h.art}"></div></div><strong>${h.name}</strong></button>`).join('');/* 選角頁僅顯示名字 */
  const n=HEROES.length;let drag=null;
  list.addEventListener('pointerdown',e=>{drag={x:e.clientX,start:hsPos,moved:false,id:e.pointerId,target:e.target.closest('.hs-card')};list.classList.add('dragging');list.setPointerCapture(e.pointerId);});
- list.addEventListener('pointermove',e=>{if(!drag||e.pointerId!==drag.id)return;const dx=e.clientX-drag.x;if(Math.abs(dx)>4)drag.moved=true;const step=parseFloat(getComputedStyle(list).getPropertyValue('--hs-cw'))*1.32+9;hsPos=drag.start-dx/step;hsLayout();});
+ list.addEventListener('pointermove',e=>{if(!drag||e.pointerId!==drag.id)return;const dx=e.clientX-drag.x;if(Math.abs(dx)>4)drag.moved=true;const step=parseFloat(getComputedStyle(list).getPropertyValue('--hs-cw'))*1.32+9;hsPos=drag.start-dx/(step*hsScale);hsLayout();/* dx 為螢幕像素，step 為設計稿像素，需除以選角頁縮放倍率 */});
  const end=e=>{if(!drag)return;const wasMoved=drag.moved,target=drag.target;drag=null;list.classList.remove('dragging');hsPos=((Math.round(hsPos)%n)+n)%n;
   if(!wasMoved&&target){/* 點擊：把該卡轉到中心 */const i=+target.dataset.i;let o=i-hsPos;o=((o+n/2)%n+n)%n-n/2;if(Math.abs(o)>=.5){hsPos=((hsPos+Math.round(o))%n+n)%n;tone(720,.08,'triangle',.05);}}
   hsLayout();if(wasMoved)tone(620,.05,'triangle',.04);};
@@ -2484,6 +2493,8 @@ document.addEventListener('keydown',e=>{if(e.code==='Space'&&e.target===document
 function handleError(error){console.error(error);busy=false;updateUI();toast('旅程暫時停住，請重新出征再試一次。');}
 /* 整體 UI 縮放：高度不足 600px 時，把 860px 高的設計稿等比縮到視窗高度 */
 const DESIGN_H=860;let uiScale=1;
+/* 選角頁設計稿：對齊桌機參考畫面 1916×910；手機橫式時依「目前可視高度 ÷ 910」獨立等比縮放（--hs-s），不沿用主畫面 860 的 --s */
+const HS_DESIGN_H=910;let hsScale=1;
 /* 量測實際安全區（動態島／瀏海）：以探針元素讀出 env() 值 */
 function safeInsets(){let pr=document.getElementById('sa-probe');if(!pr){pr=document.createElement('div');pr.id='sa-probe';pr.style.cssText='position:fixed;left:0;top:0;width:0;height:0;visibility:hidden;pointer-events:none;padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)';document.body.append(pr);}const cs=getComputedStyle(pr);return {l:parseFloat(cs.paddingLeft)||0,r:parseFloat(cs.paddingRight)||0,t:parseFloat(cs.paddingTop)||0,b:parseFloat(cs.paddingBottom)||0};}
 /* 依中央據點頭像膠囊的實際寬度，設定左右膠囊與它的等距間隔（兩側各 36px） */
@@ -2491,7 +2502,7 @@ function layoutBar(){const cp=document.querySelector('.campaign');if(!cp)return;
 /* 行動裝置瀏覽器工具列收合/展開會改變 innerHeight 造成整頁忽大忽小：
    同一寬度（同一方向）下，縮放基準只採用「曾出現過的最小高度」，不隨工具列開合重算 */
 let stableFitW=0,stableFitH=0;
-function fitUI(){let h=window.innerHeight;const w=window.innerWidth;if(w!==stableFitW||Math.abs(h-stableFitH)>h*.3){stableFitW=w;stableFitH=h;}else{stableFitH=Math.min(stableFitH,h);h=stableFitH;}const game=document.querySelector('.game');const root=document.documentElement;if(h<600){uiScale=h/DESIGN_H;root.classList.add('ui-scaled');root.style.setProperty('--s',uiScale);const sa=safeInsets();const usable=Math.max(320,w-sa.l-sa.r);game.style.width=(usable/uiScale)+'px';game.style.left=sa.l+'px';root.style.setProperty('--design-w',(usable/uiScale)+'px');root.style.setProperty('--design-left',sa.l+'px');}else{uiScale=1;root.classList.remove('ui-scaled');root.style.setProperty('--s',1);game.style.width='';game.style.left='';root.style.setProperty('--design-w','100%');root.style.setProperty('--design-left','0px');}/* 實際可視高度：工具列收合後高度變大時，版面向下延伸填滿（縮放倍率維持不變以免閃動），並提供開場提示窗等元素使用 */root.style.setProperty('--app-h',window.innerHeight+'px');root.style.setProperty('--design-h',(uiScale<1?Math.max(DESIGN_H,window.innerHeight/uiScale):DESIGN_H)+'px');if(!$('hero-select').hidden&&typeof hsLayout==='function')hsLayout();}
+function fitUI(){let h=window.innerHeight;const w=window.innerWidth;if(w!==stableFitW||Math.abs(h-stableFitH)>h*.3){stableFitW=w;stableFitH=h;}else{stableFitH=Math.min(stableFitH,h);h=stableFitH;}const game=document.querySelector('.game');const root=document.documentElement;if(h<600){uiScale=h/DESIGN_H;root.classList.add('ui-scaled');root.style.setProperty('--s',uiScale);const sa=safeInsets();const usable=Math.max(320,w-sa.l-sa.r);game.style.width=(usable/uiScale)+'px';game.style.left=sa.l+'px';root.style.setProperty('--design-w',(usable/uiScale)+'px');root.style.setProperty('--design-left',sa.l+'px');/* 選角頁：以桌機參考版面 1916×910 為設計稿，依「目前」可視高度縮放並填滿（不用最小高度基準，避免工具列收合後上下留白、人物偏小） */hsScale=window.innerHeight/HS_DESIGN_H;root.style.setProperty('--hs-s',hsScale);root.style.setProperty('--hs-design-w',(usable/hsScale)+'px');}else{uiScale=1;hsScale=1;root.style.removeProperty('--hs-s');root.style.removeProperty('--hs-design-w');root.classList.remove('ui-scaled');root.style.setProperty('--s',1);game.style.width='';game.style.left='';root.style.setProperty('--design-w','100%');root.style.setProperty('--design-left','0px');}/* 實際可視高度：工具列收合後高度變大時，版面向下延伸填滿（縮放倍率維持不變以免閃動），並提供開場提示窗等元素使用 */root.style.setProperty('--app-h',window.innerHeight+'px');root.style.setProperty('--design-h',(uiScale<1?Math.max(DESIGN_H,window.innerHeight/uiScale):DESIGN_H)+'px');if(!$('hero-select').hidden&&typeof hsLayout==='function')hsLayout();}
 fitUI();requestAnimationFrame(layoutBar);setTimeout(layoutBar,300);
 /* 行動裝置收合／展開瀏覽器工具列時會連續觸發 resize，若每次都重算整頁縮放與重繪會造成 GPU 記憶體暴增而崩潰：
    改為去抖動（等尺寸穩定 160ms 後才套用），期間加上 .resizing 暫停動畫與濾鏡，且尺寸變化小於 2px 時忽略 */
