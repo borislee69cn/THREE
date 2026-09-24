@@ -1449,18 +1449,13 @@ html.ui-scaled .hs-title-img.hs-logo img{width:min(300px,calc(var(--design-w,144
 .hs-list{translate:0 -12px}
 
 /* ===== 手機橫式（整頁縮放）：對話框改以設計稿尺寸（860px 高、--design-w 寬）計算，回復桌機版面 ===== */
-html.ui-scaled dialog{max-height:calc(860px - 30px)!important;max-width:calc(var(--design-w,1440px) - 32px)!important}
+html.ui-scaled dialog{max-height:calc(var(--design-h,910px) - 30px)!important;max-width:calc(var(--design-w,1440px) - 32px)!important}
 html.ui-scaled .battle-dialog{width:min(1100px,calc(var(--design-w,1440px) - 32px))!important}
-html.ui-scaled .battle-panel{padding:24px 34px 18px!important}
-html.ui-scaled .duel{grid-template-columns:1fr 200px 1fr!important}
-html.ui-scaled .duel-art{width:300px!important;height:300px!important}
-html.ui-scaled .duel-mid .battle-die{left:50%!important;top:50%!important;transform:translate(-50%,-50%)!important;width:150px!important;height:150px!important;bottom:auto!important}
-html.ui-scaled .battle-line{margin:6px 0 10px!important;font-size:16px!important;min-height:40px!important}
-html.ui-scaled .hp-area{width:min(440px,100%)!important}
-html.ui-scaled .duel-col small{font-size:30px!important}
-html.ui-scaled .battle-dialog h2{font-size:inherit}
-html.ui-scaled .paper-dialog{width:min(540px,calc(var(--design-w,1440px) - 32px))!important}
-html.ui-scaled .treasure-dialog{width:min(560px,calc(var(--design-w,1440px) - 32px))!important}
+/* （已移除）原 html.ui-scaled 對據點戰視窗的 .battle-panel／.duel-art／.battle-line／.hp-area 等硬性覆寫：
+   數值與桌機實際樣式不一致（如內距 24px vs 桌機 9px、旁白 16px vs 20px、戰力條 440 vs 520），
+   現改由「@media 依設計稿尺寸判定」機制讓手機沿用與桌機完全相同的樣式。 */
+html.ui-scaled .paper-dialog{width:min(440px,calc(var(--design-w,1440px) - 32px))!important}/* 與桌機 .paper-dialog 440px 同寬（原誤設 540） */
+html.ui-scaled .treasure-dialog{width:min(540px,calc(var(--design-w,1440px) - 32px))!important}/* 與桌機 .treasure-dialog 540px 同寬（原誤設 560） */
 
 /* === 旁白氣泡：維持原寬度（敵將 290px、五虎將 230px），超出兩行時只縮字級 === */
 .hero-token .speech{max-width:230px!important}
@@ -1790,7 +1785,7 @@ html.ui-scaled .treasure-prize{font-size:40px!important}
 html.ui-scaled .battle-x{right:14px!important;top:10px!important;width:40px!important;height:40px!important;font-size:34px!important}
 html.ui-scaled .dice-empty-actions .gold-button{font-size:20px!important}
 html.ui-scaled .speech,html.ui-scaled .hero-token .speech{font-size:20px!important}
-html.ui-scaled .checkpoint .portrait{width:48px;height:48px}
+/* （已移除）html.ui-scaled .checkpoint .portrait 48px 覆寫：桌機為 72px，改由設計稿 @media 判定 */
 
 /* === 行動裝置旁白出框修正：縮放模式下舊規則把氣泡寬度鎖在 230px，兩行不換行文字被裁切 === */
 html.ui-scaled .hero-token .speech,html.ui-scaled .speech{max-width:356px!important;width:max-content!important;font-size:20px!important}
@@ -1919,6 +1914,18 @@ html.ui-scaled .game,html.ui-scaled .hero-select{height:var(--design-h,860px)!im
    3. LOGO 寬度回復桌機規格 340px（桌機 min(340px,46vw) 之等價值，以選角頁設計寬換算） */
 html.ui-scaled .hero-select{height:var(--hs-design-h,910px)!important;width:var(--hs-design-w,var(--design-w,100%))!important;transform:scale(var(--hs-s,var(--s)))!important;transform-origin:0 0}
 html.ui-scaled .hs-title-img.hs-logo img{width:min(340px,calc(var(--hs-design-w,var(--design-w,1440px)) * .46))!important}
+
+/* ===== 手機橫式：modal 對話框（規則說明／重新出征／道具卡背包／骰子不足／天下祕寶）自行等比縮放 =====
+   showModal() 開啟的 <dialog> 位於瀏覽器 top layer，不受 .game 的整頁縮放 transform 影響，原本在手機以 1:1 設計尺寸呈現而爆版、按鍵位移；
+   改為以 --s 自行縮放並以視窗中心定位（據點戰視窗為非 modal、位於 .game 內，已隨整頁縮放，不在此列） */
+html.ui-scaled dialog.paper-dialog[open],html.ui-scaled dialog.treasure-dialog[open]{position:fixed;inset:auto;left:50%;top:50%;right:auto;bottom:auto;margin:0;transform:translate(-50%,-50%) scale(var(--s,1));transform-origin:50% 50%;max-height:calc(var(--design-h,910px) - 30px)!important;max-width:calc(var(--design-w,1440px) - 32px)!important}
+/* 道具卡清單高度：以設計高換算（原 46vh 依實際視窗計算，手機縮放後過矮） */
+html.ui-scaled .inventory-list{max-height:calc(var(--design-h,910px) * .46)}
+
+/* ===== 手機橫式：其餘與桌機不一致的覆寫補正 ===== */
+html.ui-scaled .inventory-dialog{width:min(460px,calc(var(--design-w,1440px) - 32px))!important}/* 道具卡背包：桌機 460px */
+html.ui-scaled .command-bar .dice-widget .throw-button strong{font-size:0!important;letter-spacing:0!important}/* 投擲文字已改圖檔，取消舊覆寫的 26px 字級 */
+html.ui-scaled .brand h1{font-size:clamp(26px,calc(var(--design-w,1440px) * .028),40px)}/* 原 2.8vw 依實際視窗計算 */
 </style>
 </head>
 <body class="show-index">
@@ -2492,7 +2499,7 @@ function release(){dragMoved=!!(pointer&&pointer.moved);pointer=null;map.classLi
 document.addEventListener('keydown',e=>{if(e.code==='Space'&&e.target===document.body&&!document.querySelector('dialog[open]')){e.preventDefault();travel().catch(handleError);}if((e.code==='ArrowLeft'||e.code==='ArrowRight')&&document.activeElement===map&&!busy){e.preventDefault();following=false;camera.x=clamp(camera.x+(e.code==='ArrowRight'?140:-140),0,WORLD.width-map.clientWidth/camera.scale);renderCamera();}});
 function handleError(error){console.error(error);busy=false;updateUI();toast('旅程暫時停住，請重新出征再試一次。');}
 /* 整體 UI 縮放：高度不足 600px 時，把 860px 高的設計稿等比縮到視窗高度 */
-const DESIGN_H=860;let uiScale=1;
+const DESIGN_H=910;let uiScale=1;/* 設計高改為 910（原 860）：與桌機參考畫面 1916×910 同比例，地 bar 膠囊、地圖鏡頭與桌機一致 */
 /* 選角頁設計稿：對齊桌機參考畫面 1916×910；手機橫式時依「目前可視高度 ÷ 910」獨立等比縮放（--hs-s），不沿用主畫面 860 的 --s */
 const HS_DESIGN_H=910;let hsScale=1;
 /* 量測實際安全區（動態島／瀏海）：以探針元素讀出 env() 值 */
@@ -2501,8 +2508,17 @@ function safeInsets(){let pr=document.getElementById('sa-probe');if(!pr){pr=docu
 function layoutBar(){const cp=document.querySelector('.campaign');if(!cp)return;const sc=uiScale||1;const w=cp.getBoundingClientRect().width/sc;document.documentElement.style.setProperty('--bar-gap',(w+72)+'px');/* 頭像膠囊底邊對齊左右膠囊底邊 */const hs=document.querySelector('.hero-summary'),game=document.querySelector('.game');if(hs&&game){const gr=game.getBoundingClientRect(),hr=hs.getBoundingClientRect();cp.style.bottom=((gr.bottom-hr.bottom)/sc)+'px';cp.style.top='auto';/* 骰子膠囊底邊對齊獎勵膠囊底邊（量測差值後以 translate 補正） */const dp=document.querySelector('.dice-widget .dice-panel'),dw=document.querySelector('.dice-widget');if(dp&&dw){dw.style.translate='0 0';const dr=dp.getBoundingClientRect();const dy=(hr.bottom-dr.bottom)/sc;if(Math.abs(dy)>.5)dw.style.translate=`0 ${dy}px`;}}}
 /* 行動裝置瀏覽器工具列收合/展開會改變 innerHeight 造成整頁忽大忽小：
    同一寬度（同一方向）下，縮放基準只採用「曾出現過的最小高度」，不隨工具列開合重算 */
+/* === 手機橫式（整頁縮放）：CSS @media 的寬高條件改以「設計稿尺寸」判定 ===
+   整頁縮放後版面等同一個 design-w × design-h 的桌機視窗，但瀏覽器仍以實際視窗（如 814×385）判定 @media，
+   導致 (max-width:1100px)、(max-height:700px)、(max-height:520px) 等手機才成立、(min-width:1800px) 桌機才成立的規則造成兩端版面不同。
+   這裡在啟用縮放時把含 (min|max)-(width|height) 的媒體條件直接依設計稿尺寸算成 all／not all（其他特徵如 pointer、prefers-* 保留），
+   關閉縮放時還原原始條件。 */
+let designMediaList=null;
+function collectDesignMedia(){if(designMediaList)return designMediaList;const out=[];for(const sh of document.styleSheets){let rules;try{rules=sh.cssRules;}catch(e){continue;}if(!rules)continue;for(const r of rules){if(r.type===CSSRule.MEDIA_RULE&&/\b(min|max)-(width|height)\s*:/i.test(r.media.mediaText))out.push({rule:r,text:r.media.mediaText});}}return designMediaList=out;}
+function evalDesignMedia(text,w,h){const out=[];for(const part of text.split(',')){let ok=true;const rest=[];for(const seg of part.split(/\s+and\s+/i)){const m=seg.match(/\(\s*(min|max)-(width|height)\s*:\s*([\d.]+)px\s*\)/i);if(!m){if(seg.trim())rest.push(seg.trim());continue;}const v=parseFloat(m[3]),d=m[2].toLowerCase()==='width'?w:h;if(m[1].toLowerCase()==='min'?d<v:d>v)ok=false;}if(ok)out.push(rest.length?rest.join(' and '):'all');}return out.length?out.join(','):'not all';}
+function applyDesignMedia(scaled,w,h){for(const it of collectDesignMedia()){const t=scaled?evalDesignMedia(it.text,w,h):it.text;if(it.rule.media.mediaText!==t){try{it.rule.media.mediaText=t;}catch(e){}}}}
 let stableFitW=0,stableFitH=0;
-function fitUI(){let h=window.innerHeight;const w=window.innerWidth;if(w!==stableFitW||Math.abs(h-stableFitH)>h*.3){stableFitW=w;stableFitH=h;}else{stableFitH=Math.min(stableFitH,h);h=stableFitH;}const game=document.querySelector('.game');const root=document.documentElement;if(h<600){uiScale=h/DESIGN_H;root.classList.add('ui-scaled');root.style.setProperty('--s',uiScale);const sa=safeInsets();const usable=Math.max(320,w-sa.l-sa.r);game.style.width=(usable/uiScale)+'px';game.style.left=sa.l+'px';root.style.setProperty('--design-w',(usable/uiScale)+'px');root.style.setProperty('--design-left',sa.l+'px');/* 選角頁：以桌機參考版面 1916×910 為設計稿，依「目前」可視高度縮放並填滿（不用最小高度基準，避免工具列收合後上下留白、人物偏小） */hsScale=window.innerHeight/HS_DESIGN_H;root.style.setProperty('--hs-s',hsScale);root.style.setProperty('--hs-design-w',(usable/hsScale)+'px');}else{uiScale=1;hsScale=1;root.style.removeProperty('--hs-s');root.style.removeProperty('--hs-design-w');root.classList.remove('ui-scaled');root.style.setProperty('--s',1);game.style.width='';game.style.left='';root.style.setProperty('--design-w','100%');root.style.setProperty('--design-left','0px');}/* 實際可視高度：工具列收合後高度變大時，版面向下延伸填滿（縮放倍率維持不變以免閃動），並提供開場提示窗等元素使用 */root.style.setProperty('--app-h',window.innerHeight+'px');root.style.setProperty('--design-h',(uiScale<1?Math.max(DESIGN_H,window.innerHeight/uiScale):DESIGN_H)+'px');if(!$('hero-select').hidden&&typeof hsLayout==='function')hsLayout();}
+function fitUI(){let h=window.innerHeight;const w=window.innerWidth;if(w!==stableFitW||Math.abs(h-stableFitH)>h*.3){stableFitW=w;stableFitH=h;}else{stableFitH=Math.min(stableFitH,h);h=stableFitH;}const game=document.querySelector('.game');const root=document.documentElement;if(h<600){uiScale=h/DESIGN_H;root.classList.add('ui-scaled');root.style.setProperty('--s',uiScale);const sa=safeInsets();const usable=Math.max(320,w-sa.l-sa.r);game.style.width=(usable/uiScale)+'px';game.style.left=sa.l+'px';root.style.setProperty('--design-w',(usable/uiScale)+'px');root.style.setProperty('--design-left',sa.l+'px');/* 選角頁：以桌機參考版面 1916×910 為設計稿，依「目前」可視高度縮放並填滿（不用最小高度基準，避免工具列收合後上下留白、人物偏小） */hsScale=window.innerHeight/HS_DESIGN_H;root.style.setProperty('--hs-s',hsScale);root.style.setProperty('--hs-design-w',(usable/hsScale)+'px');}else{uiScale=1;hsScale=1;root.style.removeProperty('--hs-s');root.style.removeProperty('--hs-design-w');root.classList.remove('ui-scaled');root.style.setProperty('--s',1);game.style.width='';game.style.left='';root.style.setProperty('--design-w','100%');root.style.setProperty('--design-left','0px');}/* 實際可視高度：工具列收合後高度變大時，版面向下延伸填滿（縮放倍率維持不變以免閃動），並提供開場提示窗等元素使用 */root.style.setProperty('--app-h',window.innerHeight+'px');root.style.setProperty('--design-h',(uiScale<1?Math.max(DESIGN_H,window.innerHeight/uiScale):DESIGN_H)+'px');applyDesignMedia(uiScale<1,parseFloat(root.style.getPropertyValue('--design-w'))||w,parseFloat(root.style.getPropertyValue('--design-h'))||h);if(!$('hero-select').hidden&&typeof hsLayout==='function')hsLayout();}
 fitUI();requestAnimationFrame(layoutBar);setTimeout(layoutBar,300);
 /* 行動裝置收合／展開瀏覽器工具列時會連續觸發 resize，若每次都重算整頁縮放與重繪會造成 GPU 記憶體暴增而崩潰：
    改為去抖動（等尺寸穩定 160ms 後才套用），期間加上 .resizing 暫停動畫與濾鏡，且尺寸變化小於 2px 時忽略 */
