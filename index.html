@@ -1815,7 +1815,7 @@ html.ui-scaled .hero-token .speech.two-line,html.ui-scaled .speech.two-line{max-
 /* === 選角頁前提示窗：活動主視覺（參照活動提示窗版型，改為三國骰主視覺：朱漆底、金框、雲紋角飾） === */
 .intro-tip{position:fixed;inset:0;z-index:80;display:flex;align-items:center;justify-content:center;padding:calc(16px + env(safe-area-inset-top,0px)) calc(16px + env(safe-area-inset-right,0px)) calc(16px + env(safe-area-inset-bottom,0px)) calc(16px + env(safe-area-inset-left,0px));background:rgba(12,7,20,.62)}
 .intro-tip[hidden]{display:none}
-.intro-card{--u:calc(min(560px,92vw,calc((100vh - 32px) * 784 / 579)) / 100);position:relative;width:calc(var(--u) * 100);aspect-ratio:784/579;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:calc(var(--u) * 7.4) 0 calc(var(--u) * 6.2);border:max(3px,calc(var(--u) * .72)) solid #f2c95c;border-radius:calc(var(--u) * 2.9);background:radial-gradient(ellipse 80% 60% at 50% 42%,#7a241a00 0%,#0000 60%),radial-gradient(ellipse 95% 75% at 50% 20%,#6a1f16 0%,#4a140f 48%,#260907 100%);box-shadow:0 0 0 max(1px,calc(var(--u) * .22)) #6e4b1d,inset 0 0 0 max(1px,calc(var(--u) * .22)) #8b6520,inset 0 0 0 calc(var(--u) * 1.6) #0000,inset 0 0 calc(var(--u) * 6) #1a0503aa,0 18px 44px #000a;animation:intro-pop .34s cubic-bezier(.2,1.25,.4,1) both}
+.intro-card{--u:calc(min(560px,calc(100vw - 32px - env(safe-area-inset-left,0px) - env(safe-area-inset-right,0px)),calc((var(--app-h,100vh) - 32px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px)) * 784 / 579)) / 100);position:relative;width:calc(var(--u) * 100);aspect-ratio:784/579;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:calc(var(--u) * 7.4) 0 calc(var(--u) * 6.2);border:max(3px,calc(var(--u) * .72)) solid #f2c95c;border-radius:calc(var(--u) * 2.9);background:radial-gradient(ellipse 80% 60% at 50% 42%,#7a241a00 0%,#0000 60%),radial-gradient(ellipse 95% 75% at 50% 20%,#6a1f16 0%,#4a140f 48%,#260907 100%);box-shadow:0 0 0 max(1px,calc(var(--u) * .22)) #6e4b1d,inset 0 0 0 max(1px,calc(var(--u) * .22)) #8b6520,inset 0 0 0 calc(var(--u) * 1.6) #0000,inset 0 0 calc(var(--u) * 6) #1a0503aa,0 18px 44px #000a;animation:intro-pop .34s cubic-bezier(.2,1.25,.4,1) both}
 .intro-card h2{position:relative;z-index:1;margin:0;font-family:'Noto Sans TC','Noto Sans CJK TC','PingFang TC','Microsoft JhengHei',sans-serif;font-weight:900;font-size:calc(var(--u) * 5.1);line-height:1;letter-spacing:.14em;text-indent:.14em;color:#fff3cf;-webkit-text-stroke:calc(var(--u) * .12) #3a1208;paint-order:stroke fill;text-shadow:0 calc(var(--u) * .35) 0 #1a0503,0 0 calc(var(--u) * 1.4) #0006;white-space:nowrap}
 .intro-card img{display:block;width:calc(var(--u) * 64);position:relative;z-index:1;height:auto;margin:0 auto;filter:drop-shadow(0 calc(var(--u) * 1) calc(var(--u) * 1.6) #0007);user-select:none;-webkit-user-drag:none;pointer-events:none}
 .intro-go{position:relative;z-index:1;appearance:none;cursor:pointer;width:calc(var(--u) * 54);height:calc(var(--u) * 10.8);border:max(3px,calc(var(--u) * .55)) solid #b98410;border-radius:calc(var(--u) * 1.9);background:linear-gradient(180deg,#ffe38e 0%,#f8c85c 42%,#eeae33 72%,#e49a1d 100%);box-shadow:inset 0 0 0 max(2px,calc(var(--u) * .32)) #fff4c9,inset 0 calc(var(--u) * -.6) 0 max(2px,calc(var(--u) * .32)) #fff1c1,0 calc(var(--u) * .5) 0 #6b4a0f,0 calc(var(--u) * .9) calc(var(--u) * 1.4) #0006;font-family:'Noto Sans TC','Noto Sans CJK TC','PingFang TC','Microsoft JhengHei',sans-serif;font-weight:900;font-size:calc(var(--u) * 3.9);letter-spacing:.62em;text-indent:.62em;color:#5a3a06;text-shadow:0 calc(var(--u) * .15) 0 #ffe7a6;transition:transform .12s ease,filter .12s ease}
@@ -1907,6 +1907,11 @@ html.ui-scaled .hero-token .speech.two-line,html.ui-scaled .speech.two-line{max-
 .hs-tools-slot .tools{margin:0}
 .tools-ph{flex:0 0 auto;visibility:hidden}
 .hero-select.depart .hs-tools-slot{animation:hs-depart-fade .4s ease-in both}
+
+/* === 手機橫向：版面高度改為實際可視高度（工具列收合時不再留下底部色帶） === */
+html.ui-scaled .game,html.ui-scaled .hero-select{height:var(--design-h,860px)!important}
+.intro-tip{height:var(--app-h,100%);bottom:auto}
+@supports (height:100dvh){.intro-tip{height:100dvh}}
 </style>
 </head>
 <body class="show-index">
@@ -2486,13 +2491,19 @@ function layoutBar(){const cp=document.querySelector('.campaign');if(!cp)return;
 /* 行動裝置瀏覽器工具列收合/展開會改變 innerHeight 造成整頁忽大忽小：
    同一寬度（同一方向）下，縮放基準只採用「曾出現過的最小高度」，不隨工具列開合重算 */
 let stableFitW=0,stableFitH=0;
-function fitUI(){let h=window.innerHeight;const w=window.innerWidth;if(w!==stableFitW||Math.abs(h-stableFitH)>h*.3){stableFitW=w;stableFitH=h;}else{stableFitH=Math.min(stableFitH,h);h=stableFitH;}const game=document.querySelector('.game');const root=document.documentElement;if(h<600){uiScale=h/DESIGN_H;root.classList.add('ui-scaled');root.style.setProperty('--s',uiScale);const sa=safeInsets();const usable=Math.max(320,w-sa.l-sa.r);game.style.width=(usable/uiScale)+'px';game.style.left=sa.l+'px';root.style.setProperty('--design-w',(usable/uiScale)+'px');root.style.setProperty('--design-left',sa.l+'px');}else{uiScale=1;root.classList.remove('ui-scaled');root.style.setProperty('--s',1);game.style.width='';game.style.left='';root.style.setProperty('--design-w','100%');root.style.setProperty('--design-left','0px');}if(!$('hero-select').hidden&&typeof hsLayout==='function')hsLayout();}
+function fitUI(){let h=window.innerHeight;const w=window.innerWidth;if(w!==stableFitW||Math.abs(h-stableFitH)>h*.3){stableFitW=w;stableFitH=h;}else{stableFitH=Math.min(stableFitH,h);h=stableFitH;}const game=document.querySelector('.game');const root=document.documentElement;if(h<600){uiScale=h/DESIGN_H;root.classList.add('ui-scaled');root.style.setProperty('--s',uiScale);const sa=safeInsets();const usable=Math.max(320,w-sa.l-sa.r);game.style.width=(usable/uiScale)+'px';game.style.left=sa.l+'px';root.style.setProperty('--design-w',(usable/uiScale)+'px');root.style.setProperty('--design-left',sa.l+'px');}else{uiScale=1;root.classList.remove('ui-scaled');root.style.setProperty('--s',1);game.style.width='';game.style.left='';root.style.setProperty('--design-w','100%');root.style.setProperty('--design-left','0px');}/* 實際可視高度：工具列收合後高度變大時，版面向下延伸填滿（縮放倍率維持不變以免閃動），並提供開場提示窗等元素使用 */root.style.setProperty('--app-h',window.innerHeight+'px');root.style.setProperty('--design-h',(uiScale<1?Math.max(DESIGN_H,window.innerHeight/uiScale):DESIGN_H)+'px');if(!$('hero-select').hidden&&typeof hsLayout==='function')hsLayout();}
 fitUI();requestAnimationFrame(layoutBar);setTimeout(layoutBar,300);
 /* 行動裝置收合／展開瀏覽器工具列時會連續觸發 resize，若每次都重算整頁縮放與重繪會造成 GPU 記憶體暴增而崩潰：
    改為去抖動（等尺寸穩定 160ms 後才套用），期間加上 .resizing 暫停動畫與濾鏡，且尺寸變化小於 2px 時忽略 */
 let fitTimer=null,lastFitH=window.innerHeight,lastFitW=window.innerWidth;
 function scheduleFit(){document.documentElement.classList.add('resizing');clearTimeout(fitTimer);fitTimer=setTimeout(()=>{const h=window.innerHeight,w=window.innerWidth;if(Math.abs(h-lastFitH)>=2||Math.abs(w-lastFitW)>=2){lastFitH=h;lastFitW=w;fitUI();}layoutBar();requestAnimationFrame(()=>document.documentElement.classList.remove('resizing'));},160);}
-window.addEventListener('resize',scheduleFit);window.addEventListener('orientationchange',()=>setTimeout(scheduleFit,60));
+window.addEventListener('resize',scheduleFit);
+/* iOS Safari：旋轉、工具列收合、首次載入完成時，innerWidth/innerHeight 可能延遲更新 → 多次補算，並監聽 visualViewport */
+function forceFit(){lastFitH=window.innerHeight;lastFitW=window.innerWidth;fitUI();layoutBar();}
+if(window.visualViewport)visualViewport.addEventListener('resize',scheduleFit);
+window.addEventListener('orientationchange',()=>{[300,700,1200].forEach(t=>setTimeout(forceFit,t));});
+window.addEventListener('pageshow',()=>{[100,600].forEach(t=>setTimeout(forceFit,t));});
+window.addEventListener('load',()=>setTimeout(forceFit,200));window.addEventListener('orientationchange',()=>setTimeout(scheduleFit,60));
 let mapRsTimer=null;new ResizeObserver(()=>{clearTimeout(mapRsTimer);mapRsTimer=setTimeout(resize,120);}).observe(map);
 buildMap();updateUI();resize();drawDie(20);buildHeroSelect();applyHero();showHeroSelect();showIntroTip();
 /* === 天 bar 功能鍵（規則說明／音樂音效／操作選單）同步顯示於選角頁：
@@ -2507,7 +2518,7 @@ buildMap();updateUI();resize();drawDie(20);buildHeroSelect();applyHero();showHer
  window.addEventListener('resize',()=>{setTimeout(place,220);});sync();})();
 /* 選角頁前提示窗：開啟時選角頁不可操作，按「進入遊戲」後淡出並把焦點交給出陣鍵 */
 function showIntroTip(){const tip=$('intro-tip');if(!tip)return;const hs=$('hero-select');const lg=$('intro-logo');if(lg&&!lg.src)lg.src=$('brand-logo').src;hs.inert=true;tip.hidden=false;const onKey=e=>{if(tip.hidden){document.removeEventListener('keydown',onKey);return;}if((e.key==='Enter'||e.key===' ')&&document.activeElement!==$('intro-go')){e.preventDefault();$('intro-go').click();}};document.addEventListener('keydown',onKey);
- $('intro-go').addEventListener('click',()=>{if(tip.classList.contains('closing'))return;setSound(true);startBgm();tone(880,.12,'triangle',.07);const done=()=>{tip.hidden=true;tip.classList.remove('closing');hs.inert=false;$('hs-go').focus();flashHsTip();};
+ $('intro-go').addEventListener('click',()=>{if(tip.classList.contains('closing'))return;try{forceFit();}catch(e){}setSound(true);startBgm();tone(880,.12,'triangle',.07);const done=()=>{tip.hidden=true;tip.classList.remove('closing');hs.inert=false;$('hs-go').focus();flashHsTip();};
   if(matchMedia('(prefers-reduced-motion: reduce)').matches){done();return;}tip.classList.add('closing');setTimeout(done,220);},{once:false});}
 })();
 
