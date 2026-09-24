@@ -1775,6 +1775,22 @@ html.ui-scaled .dice-empty-dialog{width:min(560px,calc(var(--design-w,1440px) - 
 .hero-summary::after{top:49.7%!important}
 .campaign{padding:13px 24px 14px!important}
 .campaign .campaign-line{top:49.7%!important}
+
+/* === 選角頁箭頭等比放大 20% === */
+.hs-arrow{scale:1.2}
+.hs-arrow:active{scale:1.08}
+
+/* ===== 手機橫式（整頁縮放）補充：近期新增元件回復桌機規格，避免與縮放重複縮小 ===== */
+html.ui-scaled .hs-arrow{width:88px!important;height:calc(88px / 1.7812)!important;margin-top:calc(-44px / 1.7812)!important}
+html.ui-scaled .hs-arrow.left{left:calc(50% - var(--hs-cw,200px) * 1.25 - 44px)!important}
+html.ui-scaled .hs-arrow.right{left:calc(50% + var(--hs-cw,200px) * 1.25 - 44px)!important}
+html.ui-scaled .hs-go{width:294px!important;translate:0 -33px!important}
+html.ui-scaled .hs-go:active{translate:0 -30px!important}
+html.ui-scaled .treasure-prize{font-size:40px!important}
+html.ui-scaled .battle-x{right:14px!important;top:10px!important;width:40px!important;height:40px!important;font-size:34px!important}
+html.ui-scaled .dice-empty-actions .gold-button{font-size:20px!important}
+html.ui-scaled .speech,html.ui-scaled .hero-token .speech{font-size:20px!important}
+html.ui-scaled .checkpoint .portrait{width:48px;height:48px}
 </style>
 </head>
 <body class="show-index">
