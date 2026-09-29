@@ -2050,6 +2050,18 @@ html.ui-scaled .brand h1{font-size:clamp(26px,calc(var(--design-w,1440px) * .028
 
 /* === 據點挑戰視窗：剩餘骰子資訊置於中央欄骰子下方（絕對定位於 .duel-mid 底部、水平置中） === */
 .duel-mid .pending-hint{position:absolute;left:50%;bottom:2px;transform:translateX(-50%);margin:0!important;min-height:0!important;white-space:nowrap;text-align:center;pointer-events:none}
+
+/* === 據點挑戰視窗：敵方武將立繪先縮小 5% 再放大 3%（0.95 × 1.03 ≈ 0.979；以腳底中心為基準，腳底位置不變） === */
+#battle-art{scale:.9785;transform-origin:50% 100%}
+
+/* === 天 bar 三顆膠囊鍵（規則說明／音樂音效／操作選單）標題字級統一 24px 粗體：膠囊高度 40→54px、內距與圓角等比放大，下拉箭頭圖示同步放大並保留右側留白 === */
+.round-button.pill-button{font-size:24px!important;font-weight:900!important;height:54px!important;padding:0 22px!important;border-radius:27px!important;letter-spacing:1px}
+#sound.sound-trigger{padding-right:38px!important;background-size:16px 16px!important;background-position:calc(100% - 13px) 50%!important}
+.jump-select{padding-left:22px!important;padding-right:44px!important;max-width:none!important;width:170px!important;background-size:16px 16px!important;background-position:calc(100% - 14px) 50%!important}/* 原 max-width:108px 會在 24px 字級下裁到文字與箭頭；select 若 auto 會依最長選項撐寬，故固定為容納「操作選單」＋箭頭的 170px */
+
+/* === 旁白氣泡（敵將與五虎將）字級統一 24px 粗體：單行可容納寬度依字級放寬（16.2 字 × 24px ＋內距 ≈ 420px），兩行版仍依標點斷行、寬度隨最長行 === */
+.speech,.hero-token .speech,html.ui-scaled .speech,html.ui-scaled .hero-token .speech{font-size:24px!important;font-weight:900!important;line-height:1.35!important;max-width:420px!important;padding:9px 16px!important}
+.speech.two-line,.hero-token .speech.two-line,html.ui-scaled .speech.two-line,html.ui-scaled .hero-token .speech.two-line{max-width:none!important;white-space:nowrap!important}
 </style>
 </head>
 <body class="show-index">
