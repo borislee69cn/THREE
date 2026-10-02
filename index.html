@@ -2546,7 +2546,7 @@ html.ui-scaled #modal-layer{position:absolute;left:var(--design-left,0px);top:0;
 /* ===== 天下秘寶結算：按「領取終獎」後的領獎表演 =====
    ① 按鍵文字由「返回地圖」改為「領取終獎」；按下後視窗不關閉，星幣才滾動入帳
    ② 左右噴彩帶（LuckyGoCelebration：自畫面左右下角射出，掛在 #modal-layer z 4）＋ 地 bar 中央噴出金幣／寶石／鑽石 3D 噴泉
-      （Fountain3D mode:'mixed'，畫布 .legend-fx 掛在 #modal-layer z 3，蓋在視窗 z 2 之上），兩者各噴發 3 次、間隔 1.3 秒
+      （Fountain3D mode:'mixed'，畫布 .legend-fx 掛在 #modal-layer z 3，蓋在視窗 z 2 之上），兩者各噴發 3 次、間隔 1.55 秒（各 2 組交替，用完即銷毀）
    ③ 視窗邊框加上由下而上的掃光光暈：dialog::before 以 mask 裁成 10px 邊框環（原 5px，加粗 100%），亮帶每 1.6 秒掃一輪並持續到關窗；外圈光暈同步呼吸
    ④ 表演結束（約 5.5 秒）按鍵切回「返回地圖」 */
 .treasure-dialog.claiming{box-shadow:0 0 34px 8px #ffd86b99;animation:tr-glow 1.6s ease-in-out infinite}
@@ -3149,7 +3149,7 @@ html.ui-scaled #modal-layer{position:absolute;left:var(--design-left,0px);top:0;
       this.canvas = canvas;
       this.options = { mode:'mixed', duration:3, density:1, scale:1, ...options };
       this.time = 0; this.running = false; this.destroyed = false; this._ticket = 0;
-      this.gl = canvas.getContext('webgl', {alpha:true, antialias:true, premultipliedAlpha:true, preserveDrawingBuffer:true});
+      this.gl = canvas.getContext('webgl', {alpha:true, antialias:this.options.antialias!==false, premultipliedAlpha:true, preserveDrawingBuffer:!!this.options.preserveDrawingBuffer});/* 遊戲整合：antialias／preserveDrawingBuffer 改由 options 控制（行動裝置記憶體） */
       if (!this.gl) throw new Error('此瀏覽器無法啟用 3D 顯示。請開啟瀏覽器硬體加速後重試。');
       this.meshes = {};
       this._initProgram();
@@ -3204,7 +3204,7 @@ html.ui-scaled #modal-layer{position:absolute;left:var(--design-left,0px);top:0;
     resize() {
       if(this.destroyed)return;
       const gl=this.gl, rect=this.canvas.getBoundingClientRect();
-      const dpr=Math.min(global.devicePixelRatio||1,2);
+      const dpr=Math.min(global.devicePixelRatio||1,this.options.maxDpr||2);
       const w=Math.max(1,Math.round(rect.width*dpr)), h=Math.max(1,Math.round(rect.height*dpr));
       if(this.canvas.width!==w||this.canvas.height!==h){this.canvas.width=w;this.canvas.height=h;}
       gl.viewport(0,0,w,h);
@@ -3269,7 +3269,7 @@ html.ui-scaled #modal-layer{position:absolute;left:var(--design-left,0px);top:0;
     resume(){if(this.destroyed||!this.loaded)return this;if(this.time>=this.options.duration)return this.play();this._start=performance.now()-this.time*1000;this.running=true;this._tick(performance.now());return this;}
     seek(seconds){this.time=clamp(Number(seconds)||0,0,this.options.duration);if(this.running)this._start=performance.now()-this.time*1000;this.render();return this;}
     stop(){this.pause();this.time=0;this.render();return this;}
-    destroy(){this.pause();this.destroyed=true;this._observer.disconnect();this.canvas.removeEventListener('webglcontextlost',this._lost);for(const m of Object.values(this.meshes)){this.gl.deleteBuffer(m.buffer);this.gl.deleteTexture(m.texture);}this.gl.deleteProgram(this.program);}
+    destroy(){this.pause();this.destroyed=true;this._observer.disconnect();this.canvas.removeEventListener('webglcontextlost',this._lost);for(const m of Object.values(this.meshes)){this.gl.deleteBuffer(m.buffer);this.gl.deleteTexture(m.texture);}this.gl.deleteProgram(this.program);try{const ext=this.gl.getExtension('WEBGL_lose_context');if(ext)ext.loseContext();}catch(e){}this.canvas.width=this.canvas.height=1;}/* 遊戲整合：銷毀時一併釋放 WebGL context 與畫布緩衝，避免行動裝置累積 GPU 記憶體 */
     static texture(mode){return DATA.models[mode]?.texture;}
   }
   global.Fountain3D=Fountain3D;
@@ -3483,13 +3483,26 @@ function loadLegendSfx(){if(ldSfxLoading||(ldgoBuf&&ldspinBuf&&ldcheerBuf&&ldcoi
 /* 可中止的音效播放：回傳 {src,g}，供轉動音效在全停時淡出停止 */
 function playBufCtl(buf,gain,loop=false){if(!soundOn||!buf)return null;try{audioCtx.resume().catch(()=>{});const src=audioCtx.createBufferSource();src.buffer=buf;src.loop=loop;const g=audioCtx.createGain();g.gain.value=gain;src.connect(g);g.connect(audioCtx.destination);src.start();return {src,g};}catch(e){return null;}}
 function stopLegendSpinSfx(fade=.25){const n=ldSpinNode;ldSpinNode=null;if(!n)return;try{const t=audioCtx.currentTime;n.g.gain.setValueAtTime(n.g.gain.value,t);n.g.gain.linearRampToValueAtTime(0,t+fade);n.src.stop(t+fade+.05);}catch(e){try{n.src.stop();}catch(_){}}}
-/* 領獎彩帶：另建一組 LuckyGoCelebration 掛在 #modal-layer（z 4，蓋在彈窗 z 2 與金幣噴泉 z 3 之上）；原 .game 上的 winFx 位於彈窗圖層之下，不適用 */
-let legendConfetti=null;
-function playLegendConfetti(){if(reduced)return;try{if(!legendConfetti&&typeof LuckyGoCelebration==='function')legendConfetti=new LuckyGoCelebration($('modal-layer'),{duration:3,density:1,zIndex:4,maxDpr:2,reducedMotion:'auto'});if(legendConfetti)legendConfetti.play({seed:(Date.now()>>>0)&0xffff});}catch(e){}}
-/* 金幣 3D 噴泉（Fountain3D）：畫布掛在 #modal-layer 最上層，按下領獎時由下而上噴出 3 秒 */
-let legendFx=null,legendFxCanvas=null;
-function getLegendFx(){if(legendFx||typeof Fountain3D!=='function')return legendFx;try{legendFxCanvas=document.createElement('canvas');legendFxCanvas.className='legend-fx';legendFxCanvas.hidden=true;($('modal-layer')||document.body).append(legendFxCanvas);legendFx=new Fountain3D(legendFxCanvas,{mode:'coin',duration:3,density:1,scale:1});legendFx.onComplete=()=>{if(legendFxCanvas)legendFxCanvas.hidden=true;};}catch(e){legendFx=null;}return legendFx;}
-async function playLegendFountain(){if(reduced)return;const fx=getLegendFx();if(!fx)return;try{legendFxCanvas.hidden=false;await fx.ready;fx.setOptions({scale:1,density:1});/* 與終獎噴泉共用實例：還原傳奇寶箱的物件大小 */fx.resize();await fx.play({mode:'coin',duration:3});}catch(e){if(legendFxCanvas)legendFxCanvas.hidden=true;}}/* 傳奇寶箱獎勵範圍：最低 100,000、最高 1,000,000 星幣（先抽獎勵金額，再拆成七格目標數字；最左格只在正好 1,000,000 時為 1） */
+/* ===== 行動裝置記憶體：3D 噴泉（WebGL）與彩帶畫布「用時建立、用完銷毀」 =====
+   手機 Safari 對單一分頁的記憶體與 WebGL context 數量限制嚴格；原本傳奇寶箱噴泉、終獎三組噴泉與四組彩帶畫布建立後常駐不釋放，
+   玩到終獎時常駐約 3 組 WebGL（抗鋸齒＋保留緩衝）與 5 張全畫面畫布，是手機閃退（分頁被系統重載）的主因。
+   改為：開窗時預先建立（避免按下時卡頓）→ 表演結束或關窗即 destroy（釋放 WebGL context、畫布縮為 1×1）；
+   高解析螢幕（DPR≥2）關閉 WebGL 多重取樣抗鋸齒（高 DPR 下鋸齒不明顯，記憶體約省 3/4），一律不保留繪圖緩衝 */
+const FX3D_LOW_MEM=(window.devicePixelRatio||1)>=2;
+function makeFountain(mode,scale=1){if(typeof Fountain3D!=='function')return null;try{const cv=document.createElement('canvas');cv.className='legend-fx';cv.hidden=true;cv.setAttribute('aria-hidden','true');($('modal-layer')||document.body).append(cv);
+ const fx=new Fountain3D(cv,{mode,duration:3,density:1,scale,antialias:!FX3D_LOW_MEM,preserveDrawingBuffer:false,maxDpr:2});fx.onComplete=()=>{cv.hidden=true;};return {fx,canvas:cv,mode,scale};}catch(e){return null;}}
+function releaseFountain(o){if(!o)return;try{o.fx.destroy();}catch(e){}try{o.canvas.remove();}catch(e){}}
+async function playFountain(o,mode){if(reduced||!o)return;try{o.canvas.hidden=false;await o.fx.ready;o.fx.setOptions({scale:o.scale,density:1});o.fx.resize();await o.fx.play({mode,duration:3});}catch(e){o.canvas.hidden=true;}}
+function makeConfetti(duration,density){try{return typeof LuckyGoCelebration==='function'?new LuckyGoCelebration($('modal-layer'),{duration,density,zIndex:4,maxDpr:2,reducedMotion:'auto'}):null;}catch(e){return null;}}
+function releaseConfetti(c){if(!c)return;try{c.destroy();}catch(e){}try{c.canvas.width=c.canvas.height=0;}catch(e){}}/* iOS：移除前先把畫布縮為 0，立即釋放畫布記憶體 */
+/* 領獎彩帶（傳奇寶箱）：掛在 #modal-layer（z 4，蓋在彈窗 z 2 與金幣噴泉 z 3 之上），播完即銷毀 */
+function playLegendConfetti(){if(reduced)return;const c=makeConfetti(3,1);if(!c)return;try{c.play({seed:(Date.now()>>>0)&0xffff}).then(()=>releaseConfetti(c),()=>releaseConfetti(c));}catch(e){releaseConfetti(c);}}
+/* 傳奇寶箱金幣 3D 噴泉：開啟寶箱視窗時預先建立，按下領獎噴出 3 秒；視窗關閉後待噴泉播完即銷毀 */
+let legendFx3=null;
+function prepLegendFountain(){if(reduced||legendFx3)return;legendFx3=makeFountain('coin',1);}
+async function playLegendFountain(){if(reduced)return;prepLegendFountain();await playFountain(legendFx3,'coin');}
+function releaseLegendFountainSoon(){const o=legendFx3;if(!o)return;const tryRelease=()=>{if(legendFx3!==o)return;if(o.fx.running){setTimeout(tryRelease,400);return;}legendFx3=null;releaseFountain(o);};setTimeout(tryRelease,400);}
+/* 傳奇寶箱獎勵範圍：最低 100,000、最高 1,000,000 星幣（先抽獎勵金額，再拆成七格目標數字；最左格只在正好 1,000,000 時為 1） */
 let lrState=null;
 function lrMod(a,n){return ((a%n)+n)%n;}
 function lrRand(n){const arr=new Uint32Array(1);const limit=Math.floor(2**32/n)*n;do{crypto.getRandomValues(arr);}while(arr[0]>=limit);return arr[0]%n;}
@@ -3539,8 +3552,8 @@ function runLegendDialog(name,title){const d=buildLegendDialog();return new Prom
  const reward=LR_MIN+lrRand(LR_MAX-LR_MIN+1);/* 100,000～1,000,000 均勻隨機 */const digits=String(reward).padStart(LR_N,'0').split('').map(Number);
  const reels=[...d.querySelectorAll('.ld-reel')].map((el,i)=>{const n=+el.dataset.n;el.classList.remove('spin','stopped');return {i,el,strip:el.querySelector('.lr-strip'),n,cellH:150,pos:lrRand(n)+Math.random(),vel:0,speed:.7+Math.random()*.3,target:digits[i],phase:'idle'};});
  lrState={phase:'idle',reels,last:0,raf:0};
- const onClose=()=>{d.removeEventListener('close',onClose);const st=lrState;if(st){cancelAnimationFrame(st.raf);}lrState=null;stopLegendSpinSfx(.1);resolve(st&&st.phase==='claimed'?{reward:st.reward}:null);};
- d.addEventListener('close',onClose);openDialog(d);lrMeasure();lrState.raf=requestAnimationFrame(lrFrame);tone(520,.12,'triangle',.06);setTimeout(()=>tone(780,.14,'triangle',.06),90);});}
+ const onClose=()=>{d.removeEventListener('close',onClose);const st=lrState;if(st){cancelAnimationFrame(st.raf);}lrState=null;stopLegendSpinSfx(.1);releaseLegendFountainSoon();/* 噴泉播完即釋放 WebGL */resolve(st&&st.phase==='claimed'?{reward:st.reward}:null);};
+ d.addEventListener('close',onClose);openDialog(d);prepLegendFountain();/* 預先建立金幣噴泉，按領獎時不卡頓 */lrMeasure();lrState.raf=requestAnimationFrame(lrFrame);tone(520,.12,'triangle',.06);setTimeout(()=>tone(780,.14,'triangle',.06),90);});}
 /* 操作選單「★ 開啟傳奇寶箱」：地圖上若有尚未開啟的傳奇寶箱就直接開它（走正式流程）；否則以測試模式開一個獨立的傳奇寶箱轉輪，領獎同樣入帳星幣 */
 async function openLegendFromMenu(){if(busy||journey.phase!=='ready'||!$('hero-select').hidden)return;const pending=Object.keys(legendChests).find(n=>!legendChests[n].opened);if(pending){await openLegendChest(pending);return;}
  busy=true;updateUI();const outcome=await runLegendDialog('','傳奇寶箱（測試）');if(outcome)announce(`測試開啟傳奇寶箱，獲得 ${outcome.reward} 星幣。`);busy=false;updateUI();}
@@ -3662,7 +3675,7 @@ function stopBattleAmb(fade=.6){const n=ambNode;ambNode=null;if(!n)return;try{co
 document.addEventListener('visibilitychange',()=>syncBattleAmb());
 let lastBattleBg=0;const BATTLE_BG_COUNT=4;let lastQuip='',quipToken=0;
 function pickBattleBg(){let n;do{n=1+Math.floor(Math.random()*BATTLE_BG_COUNT);}while(BATTLE_BG_COUNT>1&&n===lastBattleBg);lastBattleBg=n;const p=$('battle-panel');for(let i=1;i<=BATTLE_BG_COUNT;i++)p.classList.toggle('bg-'+i,i===n);}
-function showBattle(){enterBattleBgm();loadWarSfx();loadLegendSfx();loadSwordSfx();loadZyFx();loadBattleAmb(3);loadBattleAmb(4);/* 戰場環境音（3 雷雨、4 火攻）預先解碼 *//* 預先解碼：開戰鑼聲於 VS 現身時播放（見 battleIntro），不再於開窗時播 */pickBattleBg();/* 隨機戰場背景 */const g=journey.enemy;$('battle-name').textContent='';$('battle-title').textContent=g.isTreasure?g.title:g.name;/* 敵將僅顯示名字 */$('battle-title').classList.toggle('long-name',$('battle-title').textContent.length>=3);/* 三字名取消字距 */updateLegendCount();/* 骰子下方：傳奇寶箱擲骰倒數 */$('battle-eyebrow').textContent=g.isTreasure?'開啟秘寶':g.name==='曹操'?'最後一戰':'據點戰';$('battle-art').className=`sprite sprite-${g.art}`;try{$('battle-art').style.setProperty('--art-url',getComputedStyle($('battle-art')).backgroundImage);}catch(e){}/* 受擊紅色殘影：以同一張立繪作遮罩 */{const q0=g.isTreasure?g.line:pickLine(GENERAL_LINES,g.name,g.line);lastQuip=q0;quipToken++;$('battle-line').textContent=`「${q0}」`;}$('battle-result').hidden=true;$('hp-area').hidden=false;$('attack').hidden=false;$('attack').disabled=false;delete $('attack').dataset.rolling;$('attack').innerHTML='擲骰交鋒 <span>點數 = 傷害</span>';$('continue').hidden=true;$('victory-seal').classList.remove('show');$('damage').className='damage';/* 清除上一場殘留的點數飄字與骰子落定狀態（dialog 重新顯示時會重播其動畫） */const bn=$('battle-number');bn.classList.remove('show');bn.textContent='';$('battle-die').classList.remove('landed','rolling');$('pending-hint').innerHTML=`剩餘骰子：<b class="dice-left-mirror">${diceLeft}</b>`;updateHp();($('battle-dim').hidden=false,$('battle-dialog').show());requestAnimationFrame(alignHpNumber);/* 視窗顯示後才量得到血條位置 */battleIntro().catch(handleError);tone(180,.25,'triangle',.12);setTimeout(()=>tone(220,.25,'triangle',.1),100);announce(`遇到${g.name}，戰力${g.hp}。擲骰交鋒，點數等於傷害。`);}
+function showBattle(){enterBattleBgm();loadWarSfx();loadLegendSfx();loadSwordSfx();loadZyFx();/* 戰場環境音改由 syncBattleAmb 於抽到該戰場時才解碼（節省行動裝置記憶體） *//* 預先解碼：開戰鑼聲於 VS 現身時播放（見 battleIntro），不再於開窗時播 */pickBattleBg();/* 隨機戰場背景 */const g=journey.enemy;$('battle-name').textContent='';$('battle-title').textContent=g.isTreasure?g.title:g.name;/* 敵將僅顯示名字 */$('battle-title').classList.toggle('long-name',$('battle-title').textContent.length>=3);/* 三字名取消字距 */updateLegendCount();/* 骰子下方：傳奇寶箱擲骰倒數 */$('battle-eyebrow').textContent=g.isTreasure?'開啟秘寶':g.name==='曹操'?'最後一戰':'據點戰';$('battle-art').className=`sprite sprite-${g.art}`;try{$('battle-art').style.setProperty('--art-url',getComputedStyle($('battle-art')).backgroundImage);}catch(e){}/* 受擊紅色殘影：以同一張立繪作遮罩 */{const q0=g.isTreasure?g.line:pickLine(GENERAL_LINES,g.name,g.line);lastQuip=q0;quipToken++;$('battle-line').textContent=`「${q0}」`;}$('battle-result').hidden=true;$('hp-area').hidden=false;$('attack').hidden=false;$('attack').disabled=false;delete $('attack').dataset.rolling;$('attack').innerHTML='擲骰交鋒 <span>點數 = 傷害</span>';$('continue').hidden=true;$('victory-seal').classList.remove('show');$('damage').className='damage';/* 清除上一場殘留的點數飄字與骰子落定狀態（dialog 重新顯示時會重播其動畫） */const bn=$('battle-number');bn.classList.remove('show');bn.textContent='';$('battle-die').classList.remove('landed','rolling');$('pending-hint').innerHTML=`剩餘骰子：<b class="dice-left-mirror">${diceLeft}</b>`;updateHp();($('battle-dim').hidden=false,$('battle-dialog').show());requestAnimationFrame(alignHpNumber);/* 視窗顯示後才量得到血條位置 */battleIntro().catch(handleError);tone(180,.25,'triangle',.12);setTimeout(()=>tone(220,.25,'triangle',.1),100);announce(`遇到${g.name}，戰力${g.hp}。擲骰交鋒，點數等於傷害。`);}
 /* ===== 傳奇寶箱 10 次擲骰規則：挑戰視窗開場橫幅 + 骰子下方倒數 ===== */
 function legendBannerApplies(){const g=journey.enemy;return journey.phase==='battle'&&!!g&&!g.isTreasure&&journey.position!==LAST&&!legendChests[g.name]&&journey.battleRolls<LEGEND_ROLL_LIMIT;}/* 終點曹操只給天下秘寶、已擲滿 10 次的續戰不再提示 */
 let legendBannerToken=0;
@@ -3789,17 +3802,15 @@ $('battle-dialog').addEventListener('close',()=>{if(heroFx)heroFx.stop();});/* �
 let pendingDefeatBonus=0;/* 擊敗獎勵星幣：據點戰視窗關閉、鏡頭回到主角後才以金幣飛入膠囊的方式入帳 */
 async function attack(){if(busy||journey.phase!=='battle')return;if(diceLeft<=0){openDialog($('dice-empty-dialog'));return;}diceLeft--;refreshDice();busy=true;$('attack').disabled=true;playBfxSfx();/* 按下擲骰：戰鬥背景音完整播放 */playSwordSfx();/* 按下擲骰：刀劍音效 */const value=randomDie();await animateDie(value,true);/* 攻擊特效：點數停留 0.13 秒 → 依點數出招（1～5 專屬小招、6～10 專屬大招、11～15 殘影突刺、16～20 落地震擊）→ 命中時唯一一次結算傷害（journey.attack）→ 收招後才接勝利／獎勵流程 */await sleep(reduced?0:130);let result=null;const hitNow=legacy=>{if(result||journey.phase!=='battle')return;result=journey.attack(value);if(result.bonus&&!reduced)holdWallet('coins',journey.coins-result.bonus);/* 擊敗獎勵先凍結膠囊顯示，回地圖後再飛入 */updateLegendCount(true);showDamagePop(result.damage);/* 傷害跳字（所有路徑共用，掛在戰場層） */if(legacy){$('battle-art').classList.remove('shake','hit-flash');void $('battle-art').offsetWidth;$('battle-art').classList.add('shake','hit-flash');const bp=$('battle-panel');bp.classList.remove('jolt');void bp.offsetWidth;bp.classList.add('jolt');}/* 引擎不可用時沿用原受擊表演；特效版的跳字、閃白、後退回穩由引擎提供 */else redGhost();/* 特效版：命中時加回紅色殘影 */tone(110,.22,'sawtooth',.05);updateHp();updateUI();};const atkPlayed=playAtkSfx();/* 我方攻擊音效 */if(!atkPlayed)tone(160,.1,'sawtooth',.06);const usedFx=await playHeroFx(value,hitNow);if(!result)hitNow(!usedFx);/* 特效在命中前被中斷：仍以停下的點數結算一次，骰子不會白扣 */if(!result){busy=false;updateUI();return;}await sleep(reduced?150:usedFx?300:750);if(result.wonBattle&&journey.enemy.isTreasure){$('battle-dialog').close();$('battle-dim').hidden=true;busy=false;updateUI();showTreasure();return;}if(result.wonBattle){playWinConfetti();playCheerSfx();/* 擊敗武將：歡呼聲 *//* 背景畫面噴彩帶（3 秒），視窗自動關閉後仍延續於地圖上 */if(result.treasure&&!reduced)holdWallet('coins',journey.coins-result.treasure);/* 秘寶獎金等結算視窗出現再滾動入帳 */if(result.legend)startLegendChest(journey.enemy.name);/* 10 次擲骰內擊敗才給傳奇寶箱；終點曹操只給天下秘寶 */$('victory-seal').classList.add('show');/* 蓋印瞬間：面板震動 + 敵將再震一下 + 重擊音 */setTimeout(()=>{const bp=$('battle-panel');bp.classList.remove('stamp-jolt');void bp.offsetWidth;bp.classList.add('stamp-jolt');const ba=$('battle-art');ba.classList.add('defeated');ba.classList.remove('shake');void ba.offsetWidth;ba.classList.add('shake');if(!playStampSfx())tone(90,.28,'sawtooth',.09);/* 蓋印章音效（音檔）；未解碼完成時回退原合成重擊音 */},reduced?0:240);const finalWin=!!result.treasure,gotLegend=!!result.legend,bonus=result.bonus||0;pendingDefeatBonus=bonus;$('battle-line').textContent=finalWin?'亂世梟雄已敗，天下秘寶入手！':gotLegend?'據點已突破，下一段征途等著你。':`據點已突破，共擲骰 ${result.battleRolls} 次。`;/* 超過 10 次：僅中性說明擲骰次數，不提寶箱 */$('hp-area').hidden=true;$('battle-result').hidden=!(finalWin||gotLegend||bonus);$('battle-result').textContent=finalWin?'收穫 · 天下秘寶':gotLegend?'收穫 · 傳奇寶箱':bonus?`收穫 · ${fmt(bonus)} 星幣`:'';/* 超過 10 次未獲寶箱：收穫列改顯示擊敗獎勵星幣 */$('attack').hidden=true;$('continue').hidden=false;chime();$('continue').focus();/* 蓋印完成後自動關閉據點挑戰視窗並繼續征途 */const closeToken=++autoCloseToken;setTimeout(()=>{if(closeToken!==autoCloseToken)return;if(journey.phase==='victory'&&$('battle-dialog').open&&!busy)continueJourney().catch(handleError);},reduced?400:1400);announce(finalWin?`擊敗${journey.enemy.name}，天下秘寶入手！`:gotLegend?`擊敗${journey.enemy.name}，獲得傳奇寶箱，可於地圖上點擊開啟。`:bonus?`擊敗${journey.enemy.name}，共擲骰${result.battleRolls}次，獲得${fmt(bonus)}星幣。`:`擊敗${journey.enemy.name}，共擲骰${result.battleRolls}次。`);}else{$('battle-line').textContent=`造成 ${result.damage} 點傷害！`;/* 骰面已顯示點數，台詞列只保留傷害資訊 */{const g=journey.enemy,tok=++quipToken;setTimeout(()=>{if(tok!==quipToken||journey.phase!=='battle'||journey.enemy!==g)return;let q=pickLine(GENERAL_LINES,g.name,g.line),tries=6;while(q===lastQuip&&tries-->0)q=pickLine(GENERAL_LINES,g.name,g.line);lastQuip=q;$('battle-line').textContent=`「${q}」`;},1100);}/* 每被攻擊一次，1.1 秒後換一句新的旁白（不與上一句重複） */delete $('attack').dataset.rolling;$('attack').innerHTML='再擲一骰 <span>點數 = 傷害</span>';$('attack').disabled=false;announce(`${result.damage}傷害，頭目剩餘${journey.hp}戰力。`);}busy=false;updateUI();}
 async function continueJourney(){if(busy||journey.phase!=='victory')return;busy=true;introToken++;autoCloseToken++;$('battle-panel').classList.remove('intro','intro-slide','intro-vs','intro-vs-out','intro-die');$('battle-dialog').close();$('battle-dim').hidden=true;journey.continue();updateUI();await moveCameraTo(points[journey.position]);if(pendingDefeatBonus){const amt=pendingDefeatBonus;pendingDefeatBonus=0;coinFx(points[journey.position],amt);}/* 擊敗獎勵星幣：自主角位置飛入征途獎勵膠囊並滾動入帳 */if(journey.phase==='won'){busy=false;updateUI();showTreasure();return;}/* 終點曹操已敗：顯示征途完成結算 */if(journey.phase==='moving'){toast(`乘勝追擊！接續前進 ${journey.pending} 格`);await walk();}else{busy=false;updateUI();toast('據點突破！再次擲骰，繼續出征。');$('roll').focus();}}
-function showTreasure(){/* 天下秘寶結算：擊敗終點曹操即獲得 TREASURE_REWARD 星幣，視窗顯示秘寶獎金列並讓膠囊數字滾動入帳 */{const eb=document.querySelector('#treasure-dialog .battle-eyebrow');if(eb)eb.textContent=`${'一二三四五六七八九十'[GENERALS.length-2]||GENERALS.length-1}將已破 · 梟雄已敗`;}/* 眉標：曹操（梟雄）之前的據點武將數，目前 8 位 → 八將已破 */$('treasure-prize').hidden=false;$('treasure-prize').innerHTML=`<i class="rw-coin" aria-label="星幣"></i><span class="rw-x">x</span>${bitmapNum(fmt(TREASURE_REWARD))}`;if(!$('treasure-dialog').open)openDialog($('treasure-dialog'));/* 星幣改在按下「領取終獎」後才滾動入帳（膠囊維持凍結於舊值） */{const btn=$('finish-close'),d=$('treasure-dialog');trState='claim';btn.textContent='領取終獎';btn.disabled=false;d.classList.remove('claiming');if(!reduced){for(let i=0;i<3;i++){const o=getFinaleFx(i);if(o)o.fx.ready.then(()=>{if(o.canvas.hidden===false&&!o.fx.running)o.canvas.hidden=true;}).catch(()=>{});}}/* 預先建立三組 3D 噴泉（編譯著色器、載入材質），按下領取時不卡頓 */}chime();celebrate();toast('九將皆破，天下秘寶入手！');announce(`征途完成！擊敗${GENERALS.length}位頭目，天下秘寶 ${fmt(TREASURE_REWARD)} 星幣待領取，請按領取終獎。`);}
+function showTreasure(){/* 天下秘寶結算：擊敗終點曹操即獲得 TREASURE_REWARD 星幣，視窗顯示秘寶獎金列並讓膠囊數字滾動入帳 */{const eb=document.querySelector('#treasure-dialog .battle-eyebrow');if(eb)eb.textContent=`${'一二三四五六七八九十'[GENERALS.length-2]||GENERALS.length-1}將已破 · 梟雄已敗`;}/* 眉標：曹操（梟雄）之前的據點武將數，目前 8 位 → 八將已破 */$('treasure-prize').hidden=false;$('treasure-prize').innerHTML=`<i class="rw-coin" aria-label="星幣"></i><span class="rw-x">x</span>${bitmapNum(fmt(TREASURE_REWARD))}`;if(!$('treasure-dialog').open)openDialog($('treasure-dialog'));/* 星幣改在按下「領取終獎」後才滾動入帳（膠囊維持凍結於舊值） */{const btn=$('finish-close'),d=$('treasure-dialog');trState='claim';btn.textContent='領取終獎';btn.disabled=false;d.classList.remove('claiming');prepFinaleFx();/* 預先建立 2 組 3D 噴泉與彩帶（編譯著色器、載入材質），按下領取時不卡頓 */}chime();celebrate();toast('九將皆破，天下秘寶入手！');announce(`征途完成！擊敗${GENERALS.length}位頭目，天下秘寶 ${fmt(TREASURE_REWARD)} 星幣待領取，請按領取終獎。`);}
 /* ===== 天下秘寶領獎表演（見同名 CSS 區塊）===== */
 let trState='idle';/* idle → claim（待領取）→ playing（表演中）→ done（可返回地圖） */
-const finaleConfetti=[];
-/* 金幣／寶石／鑽石噴泉：Fountain3D mode:'mixed'（套件原生金幣／藍寶石／綠寶石／鑽石 3D 模型），自畫面底部中央（地 bar 中央）向上噴出 3 秒；
-   三波各用一組實例（第 0 組與傳奇寶箱金幣噴泉共用畫布），前一波不被下一波中斷 */
-const finaleFx3d=[];
-function getFinaleFx(i){if(i===0){return getLegendFx()?{fx:legendFx,canvas:legendFxCanvas}:null;}if(finaleFx3d[i])return finaleFx3d[i];if(typeof Fountain3D!=='function')return null;try{const cv=document.createElement('canvas');cv.className='legend-fx';cv.hidden=true;cv.setAttribute('aria-hidden','true');($('modal-layer')||document.body).append(cv);const fx=new Fountain3D(cv,{mode:'mixed',duration:3,density:1,scale:1});fx.onComplete=()=>{cv.hidden=true;};return finaleFx3d[i]={fx,canvas:cv};}catch(e){return null;}}
-async function playFinaleFountain(i){if(reduced)return;const o=getFinaleFx(i);if(!o)return;try{o.canvas.hidden=false;await o.fx.ready;o.fx.setOptions({scale:FINALE_FX_SCALE,density:1});o.fx.resize();await o.fx.play({mode:'mixed',duration:3});}catch(e){o.canvas.hidden=true;}}
-const FINALE_FX_SCALE=.6;/* 終獎噴泉物件大小：套件以 1280×480 寬幅設計，全畫面畫布下 1.0 過大，縮為 0.6 */
-function stopFinaleFountain(){for(const o of finaleFx3d){if(!o)continue;try{o.fx.stop();o.canvas.hidden=true;}catch(e){}}if(legendFx){try{legendFx.stop();if(legendFxCanvas)legendFxCanvas.hidden=true;}catch(e){}}}
+/* 金幣／寶石／鑽石噴泉：Fountain3D mode:'mixed'（金幣／藍寶石／綠寶石／鑽石 3D 模型），自畫面底部中央（地 bar 中央）向上噴出 3 秒；
+   三波間隔 1.55 秒、2 組噴泉與 2 組彩帶交替使用（同一組前一波已播完才會再用），結算窗開啟時預先建立，表演結束或關窗即銷毀 */
+const FINALE_GAP=1550;const FINALE_FX_SCALE=.6;/* 終獎噴泉物件大小：套件以 1280×480 寬幅設計，全畫面畫布下 1.0 過大，縮為 0.6 */
+let finaleFx3d=[],finaleConfetti=[];
+function prepFinaleFx(){if(reduced)return;for(let i=0;i<2;i++){if(!finaleFx3d[i])finaleFx3d[i]=makeFountain('mixed',FINALE_FX_SCALE);if(!finaleConfetti[i])finaleConfetti[i]=makeConfetti(2.2,1.1);}}
+function releaseFinaleFx(){finaleFx3d.forEach(releaseFountain);finaleConfetti.forEach(releaseConfetti);finaleFx3d=[];finaleConfetti=[];}
 async function claimTreasure(){if(trState!=='claim')return;trState='playing';const btn=$('finish-close'),d=$('treasure-dialog');btn.disabled=true;loadLegendSfx();
  if(!playBuf(ldgoBuf,1.5))tone(300,.1,'square',.06);/* 按鍵音（與傳奇寶箱領獎相同） */
  tweenWallet('coins',journey.coins,1100,250,journey.coins-TREASURE_REWARD);/* 星幣滾動入帳 */
@@ -3807,13 +3818,14 @@ async function claimTreasure(){if(trState!=='claim')return;trState='playing';con
  if(reduced){await sleep(800);}else{
   d.classList.add('claiming');/* 邊框掃光＋外圈光暈，持續到關窗 */
   for(let i=0;i<3;i++){if(trState!=='playing')return;
-   try{if(!finaleConfetti[i]&&typeof LuckyGoCelebration==='function')finaleConfetti[i]=new LuckyGoCelebration($('modal-layer'),{duration:2.2,density:1.1,zIndex:4,maxDpr:2,reducedMotion:'auto'});if(finaleConfetti[i])finaleConfetti[i].play({seed:((Date.now()+i*977)>>>0)&0xffff});}catch(e){}/* 三組畫布交替，前一波彩帶不被下一波中斷 */
-   playFinaleFountain(i).catch(()=>{});/* 金幣／寶石／鑽石 3D 噴泉 */
+   prepFinaleFx();try{const c=finaleConfetti[i%2];if(c)c.play({seed:((Date.now()+i*977)>>>0)&0xffff}).catch(()=>{});}catch(e){}/* 兩組彩帶交替 */
+   playFountain(finaleFx3d[i%2],'mixed').catch(()=>{});/* 金幣／寶石／鑽石 3D 噴泉（兩組交替） */
    if(!playBuf(ldcheerBuf,1)&&i===0)chime();playBuf(ldcoinBuf,1);/* 每波噴發：歡呼聲＋領幣聲（共 3 次） */
-   await sleep(1300);}
-  await sleep(1600);/* 讓最後一波落完 */}
+   await sleep(FINALE_GAP);}
+  await sleep(3200-FINALE_GAP);/* 讓最後一波落完 */
+  if(trState==='playing')releaseFinaleFx();/* 表演結束：釋放 WebGL 與彩帶畫布 */}
  if(trState!=='playing')return;trState='done';btn.textContent='返回地圖';btn.disabled=false;btn.focus();announce('天下秘寶已入帳，可返回地圖。');}
-$('treasure-dialog').addEventListener('close',()=>{trState='idle';$('treasure-dialog').classList.remove('claiming');stopFinaleFountain();finaleConfetti.forEach(c=>{try{c.stop();}catch(e){}});});
+$('treasure-dialog').addEventListener('close',()=>{trState='idle';$('treasure-dialog').classList.remove('claiming');releaseFinaleFx();});
 function celebrate(){if(reduced)return;const container=$('treasure-dialog');for(let i=0;i<52;i++){const p=make('i','confetti');p.style.cssText=`left:${Math.random()*100}%;background:${['#f7c858','#cf5a43','#77ab75','#68a6b6'][i%4]};--duration:${2.2+Math.random()*1.3}s;--drift:${(Math.random()-.5)*160}px;--spin:${Math.random()*1000-500}deg;animation-delay:${Math.random()*.4}s;`;container.append(p);setTimeout(()=>p.remove(),4100);}}
 /* 套用所選武將到地圖圖標、底部卡片與結算文字 */
 function applyHero(){const h=HEROES[heroIndex];for(const el of [$('hero-token-sprite'),$('hero-card-sprite')]){el.className='hero-sprite hero-'+h.art;}$('hero-tag').textContent=h.name;const bh=$('battle-hero');if(bh)bh.className='hero-sprite hero-'+h.art+' battle-hero';const dt=$('duel-hero-title'),dn=$('duel-hero-name');if(dt)dt.textContent=h.name;if(dn)dn.textContent='';/* 僅顯示名字 */$('hero-card-name').textContent=h.name;document.querySelectorAll('.hero-name-slot').forEach(e=>e.textContent=h.name);}
@@ -3882,7 +3894,7 @@ function playDepartFx(fig,heroColor){if(reduced||!fig)return;try{
  const gather=Array.from({length:Math.round(16*k)},()=>({a:R(0,6.3),d:R(.55,1)*FW,t0:R(0,.12)}));
  const T=1.15,start=performance.now();
  function chevron(cx,cy,cw,ch,lw,a,hue){const st=[[lw*3.2,a*.18,hue?tint:gold],[lw*1.8,a*.45,hue?tint:gold],[lw*.8,a,white]];for(const [w,al,col] of st){c.lineWidth=w;c.strokeStyle=col(al);c.beginPath();c.moveTo(cx-cw,cy+ch);c.lineTo(cx,cy);c.lineTo(cx+cw,cy+ch);c.stroke();}}
- function frame(now){const t=(now-start)/1000;c.clearRect(0,0,W,H);if(t>=T){cv.remove();return;}
+ function frame(now){const t=(now-start)/1000;c.clearRect(0,0,W,H);if(t>=T){cv.width=cv.height=0;cv.remove();return;}
   const fade=t>.82?1-(t-.82)/(T-.82):1;c.save();c.globalCompositeOperation='lighter';c.lineCap='round';c.lineJoin='miter';
   /* 蓄力：光點向腳底聚集 */if(t<.34)for(const g of gather){const p=cl((t-g.t0)/.26);if(p<=0)continue;const d=g.d*(1-ease(p));const x=ox+Math.cos(g.a)*d,y=oy-FH*.08+Math.sin(g.a)*d*.45;c.fillStyle=white(.9*(1-p*.4));c.beginPath();c.arc(x,y,2.4*U*(1+p),0,6.283);c.fill();}
   /* 腳底光暈 */{const p=ease(t/.36),a=(t<.36?.45+.5*p:.95*(1-cl((t-.36)/.6)))*fade;if(a>0){const rx=FW*(.3+.55*p),ry=rx*.26;c.save();c.translate(ox,oy);c.scale(1,ry/rx);const g=c.createRadialGradient(0,0,0,0,0,rx);g.addColorStop(0,white(a));g.addColorStop(.35,gold(a*.7));g.addColorStop(.7,tint(a*.3));g.addColorStop(1,tint(0));c.fillStyle=g;c.beginPath();c.arc(0,0,rx,0,6.283);c.fill();c.restore();}}
@@ -3918,7 +3930,8 @@ const DIE_IMG=new Image();DIE_IMG.src='data:image/webp;base64,UklGRgzbAABXRUJQVl
 /* 底部三個膠囊：layoutBar 依中間「據點討伐」膠囊寬度排成左右等距（征途膠囊與骰子膠囊到它的間距相同） */
 /* 頭像翻牌：有擲骰紀錄後每 3 秒翻轉一次 */
 setInterval(()=>{const p=document.querySelector('.hero-summary>.portrait');if(!p)return;if(!journey.rolls){p.classList.remove('flipped');return;}/* 尚無擲骰紀錄：維持頭像、不翻牌 */p.classList.toggle('flipped');},3000);
-function dieIconURL(num=20){const c=document.createElement('canvas');c.width=c.height=360;const ctx=c.getContext('2d');ctx.translate(180,180);if(DIE_IMG.complete&&DIE_IMG.naturalWidth){const w=360*.96,h=w*DIE_IMG.naturalHeight/DIE_IMG.naturalWidth;ctx.drawImage(DIE_IMG,-w/2,-h/2+2,w,h);}const txt=String(num);ctx.font='900 60px Arial,sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.lineWidth=4;ctx.strokeStyle='#ffffff';ctx.strokeText(txt,8,3);ctx.fillStyle='#1a1a1a';ctx.fillText(txt,8,3);return c.toDataURL('image/png');}
+const dieIconCache={};/* 骰子圖示快取：原本每顆飛入的骰子都重新繪製 360×360 畫布並轉成 PNG 字串，改為同點數只產生一次 */
+function dieIconURL(num=20){if(dieIconCache[num])return dieIconCache[num];const c=document.createElement('canvas');c.width=c.height=360;const ctx=c.getContext('2d');ctx.translate(180,180);if(DIE_IMG.complete&&DIE_IMG.naturalWidth){const w=360*.96,h=w*DIE_IMG.naturalHeight/DIE_IMG.naturalWidth;ctx.drawImage(DIE_IMG,-w/2,-h/2+2,w,h);}const txt=String(num);ctx.font='900 60px Arial,sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.lineWidth=4;ctx.strokeStyle='#ffffff';ctx.strokeText(txt,8,3);ctx.fillStyle='#1a1a1a';ctx.fillText(txt,8,3);const url=c.toDataURL('image/png');c.width=c.height=0;if(DIE_IMG.complete&&DIE_IMG.naturalWidth)dieIconCache[num]=url;return url;}
 function drawDie(value,spin=0){
  rollValue=value;const ctx=dieContext,size=360,cx=180,cy=180;
  ctx.clearRect(0,0,size,size);ctx.save();ctx.translate(cx,cy);
